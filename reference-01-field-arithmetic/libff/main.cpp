@@ -1,6 +1,9 @@
 #include <cstdio>
 #include <vector>
 
+#define __CL_ENABLE_EXCEPTIONS
+#include <OpenCL/opencl.h>
+
 #include <libff/algebra/curves/mnt753/mnt4753/mnt4753_pp.hpp>
 #include <libff/algebra/curves/mnt753/mnt6753/mnt6753_pp.hpp>
 
@@ -33,6 +36,24 @@ int main(int argc, char *argv[])
 {
     // argv should be
     // { "main", "compute", inputs, outputs }
+    printf("Running mul on inputs... %s\n", argv[2]);
+    dispatch_queue_t queue =
+               gcl_create_dispatch_queue(CL_DEVICE_TYPE_GPU, NULL);
+
+    int err;                            // error code returned from api calls
+      
+    float data[DATA_SIZE];              // original data set given to device
+    float results[DATA_SIZE];           // results returned from device
+    unsigned int correct;               // number of correct results returned
+
+    size_t global;                      // global domain size for our calculation
+    size_t local;                       // local domain size for our calculation
+    
+    cl_device_id gpu = gcl_get_device_id_with_dispatch_queue(queue);
+    printf("Device id: %u\n", gpu);
+
+    clGetDeviceInfo(gpu, CL_DEVICE_NAME, 128, name, NULL);
+    fprintf(stdout, "Created a dispatch queue using the %s\n", name);
 
     mnt4753_pp::init_public_params();
     mnt6753_pp::init_public_params();

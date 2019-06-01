@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 2.8)
 
 project (libff)
 
+find_package( OpenCL REQUIRED )
+
+include_directories( ${OPENCL_INCLUDE_DIR} )
+
 set(
   CURVE
   "BN128"
@@ -54,7 +58,7 @@ option(
 option(
   WITH_PROCPS
   "Use procps for memory profiling"
-  ON
+  OFF
 )
 
 option(
@@ -93,13 +97,13 @@ if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   # Common compilation flags and warning configuration
   set(
     CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra -Wfatal-errors"
+    "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra -Wfatal-errors -framework OpenCL" 
   )
   if("${MULTICORE}")
       if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp -framework OpenCL")
       else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -framework OpenCL")
       endif()
   endif()
   # Default optimizations flags (to override, use -DOPT_FLAGS=...)
