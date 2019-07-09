@@ -1,8 +1,8 @@
 #include <cstdio>
 #include <vector>
 
-#define __CL_ENABLE_EXCEPTIONS
-#include <OpenCL/opencl.h>
+// #define __CL_ENABLE_EXCEPTIONS
+#include <CL/cl.h>
 
 #include <libff/algebra/curves/mnt753/mnt4753/mnt4753_pp.hpp>
 #include <libff/algebra/curves/mnt753/mnt6753/mnt6753_pp.hpp>

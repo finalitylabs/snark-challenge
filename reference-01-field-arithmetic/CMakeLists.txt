@@ -6,6 +6,8 @@ find_package( OpenCL REQUIRED )
 
 include_directories( ${OPENCL_INCLUDE_DIR} )
 
+link_directories(${OpenCL_LIBRARY})
+
 set(
   CURVE
   "BN128"
@@ -97,13 +99,13 @@ if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   # Common compilation flags and warning configuration
   set(
     CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra -Wfatal-errors -framework OpenCL" 
+    "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra -Wfatal-errors -lOpenCL" 
   )
   if("${MULTICORE}")
       if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp -framework OpenCL")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp -lOpenCL")
       else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -framework OpenCL")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -lOpenCL")
       endif()
   endif()
   # Default optimizations flags (to override, use -DOPT_FLAGS=...)
@@ -117,7 +119,7 @@ endif()
 
 set(
   CMAKE_CXX_FLAGS
-  "${CMAKE_CXX_FLAGS} ${OPT_FLAGS}"
+  "${CMAKE_CXX_FLAGS}"
 )
 
 find_path(GMP_INCLUDE_DIR NAMES gmp.h)
