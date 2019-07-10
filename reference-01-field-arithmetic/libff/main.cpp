@@ -11,8 +11,18 @@
 #include <libff/algebra/curves/mnt753/mnt4753/mnt4753_init.hpp>
 
 using namespace libff;
+using namespace std;
+
+#include <typeinfo>
 #include <unistd.h>
+#include <string.h>
+#include <errno.h>
+
 char *getcwd(char *buf, size_t size);
+
+typedef struct _int768 {
+  cl_long v[12];
+}int768;
 
 Fq<mnt4753_pp> read_mnt4_fq(FILE* input) {
   // bigint<mnt4753_q_limbs> n;
@@ -75,6 +85,8 @@ int main(int argc, char *argv[])
     // argv should be
     // { "main", "compute" or "compute-numeral", inputs, outputs }
 
+    printf("size of int768 %d\n", sizeof(int768));
+    printf("size of mnt4753 mont repr %d\n", libff::mnt4753_q_limbs * sizeof(mp_size_t));
     mnt4753_pp::init_public_params();
     mnt6753_pp::init_public_params();
 
@@ -97,7 +109,7 @@ int main(int argc, char *argv[])
     }
 
     while (true) {
-      printf("weeee\n");
+      printf("round \n");
       size_t elts_read = fread((void *) &n, sizeof(size_t), 1, inputs);
       printf("elts %u\n", sizeof(inputs));
       if (elts_read == 0) { break; }
@@ -128,6 +140,26 @@ int main(int argc, char *argv[])
       for (size_t i = 0; i < n; ++i) {
         write_mnt6(outputs, y0[i] * y1[i]);
       }
+
+      // std::vector<int768> test;
+      int768* vec2 = new int768[n];
+      int768 t1 = {1,0,0,0,0,0,0,0,0,0,0,0};
+      printf("t1 %u\n", t1.v[0]);
+      memcpy(&t1, &x0[0].mont_repr.data, sizeof(int768));
+      gmp_printf ("limb copied %Mu\n", t1.v[11]);
+      gmp_printf ("limb orignal %Mu\n", x0[0].mont_repr.data[11]);
+      // gmp_printf("x0 mont data %Nd\n", x0[0].mont_repr.data, n);
+      x0[123].mont_repr.print();
+      cout << typeid(x0[123]).name() << endl;
+      cout << typeid(x0[123].mont_repr.data).name() << endl;
+      printf("num bits %u\n", x0[123].num_bits);
+
+      // copy into ocl friendly data type
+      for (size_t i = 0; i <n; i++) {
+        memcpy(&vec2[i], &x0[i].mont_repr.data, sizeof(int768));
+      }
+
+      gmp_printf ("limb copied %Mu\n", vec2[n-1].v[11]);
     }
 
 
@@ -258,10 +290,10 @@ int main(int argc, char *argv[])
     {
         size_t len;
         char buffer[2048];
-
+        //std::cerr << getErrorString(err) << std::endl;
         printf("Error: Failed to build program executable!\n");
+        printf ("Message: %s\n",strerror(err));
         clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
-        printf("%s\n", buffer);
         exit(1);
     }
 
