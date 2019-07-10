@@ -382,7 +382,7 @@ int main(int argc, char *argv[])
 
       // Read back the results from the device to verify the output
       //
-      err = clEnqueueReadBuffer( commands, output_x, CL_TRUE, 0, sizeof(float) * count, results, 0, NULL, NULL );  
+      err = clEnqueueReadBuffer( commands, output_x, CL_TRUE, 0, sizeof(int768) * count, results, 0, NULL, NULL );  
       if (err != CL_SUCCESS)
       {
           printf("Error: Failed to read output array! %d\n", err);
@@ -391,7 +391,8 @@ int main(int argc, char *argv[])
 
       // Validate our results
       //
-      // gmp_printf ("limb results %Mu\n", results[0].v[11]);
+      gmp_printf ("limb results %Mu\n", results[342].v[0]);
+      gmp_printf ("limb results %Mu\n", data_x0[342].v[0] * data_x1[342].v[0]);
       correct = 0;
       for(int i = 0; i < count; i++)
       {
