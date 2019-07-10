@@ -18,13 +18,13 @@ __kernel void square(
 }
 
 __kernel void mul_field(
-    __global int768* input_x,
-    __global int768* input_y,
+    __global int768* input_x0,
+    __global int768* input_x1,
     __global int768* output,
     const unsigned int count)
 {
     int i = get_global_id(0);
-    print(input_x[i]);
+    // print(input_x[i]);
     if(i < count)
-        output[i].v[0] = input_x[i].v[0] * input_y[i].v[0];
+        output[i].v[0] = input_x0[i].v[0] * input_x1[i].v[0];
 }
