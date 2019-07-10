@@ -108,10 +108,10 @@ int768 int768_mul(int768 a, int768 b) {
 
   // Montgomery reduction
   for(uint32 i = 0; i < FIELD_LIMBS; i++) {
-    long u = mnt4753_INV_Fp * res[i];
+    long u = mnt4753_INV_Fq * res[i];
     long carry = 0;
     for(uint32 j = 0; j < FIELD_LIMBS; j++)
-      res[i + j] = mac_with_carry(u, mnt4753_P.v[j], res[i + j], &carry);
+      res[i + j] = mac_with_carry(u, mnt4753_Q.v[j], res[i + j], &carry);
     add_digit(res + i + FIELD_LIMBS, carry);
   }
 
@@ -119,21 +119,21 @@ int768 int768_mul(int768 a, int768 b) {
   int768 result;
   for(int i = 0; i < FIELD_LIMBS; i++) result.v[i] = res[i+FIELD_LIMBS];
 
-  if(int768_gte(result, mnt4753_P))
-    result = int768_sub_(result, mnt4753_P);
+  if(int768_gte(result, mnt4753_Q))
+    result = int768_sub_(result, mnt4753_Q);
 
   return result;
 }
 
 // Modular negation
 int768 int768_neg(int768 a) {
-  return int768_sub_(mnt4753_P, a);
+  return int768_sub_(mnt4753_Q, a);
 }
 
 // Modular subtraction
 int768 int768_sub(int768 a, int768 b) {
   int768 res = int768_sub_(a, b);
-  if(!int768_gte(a, b)) res = int768_add_(res, mnt4753_P);
+  if(!int768_gte(a, b)) res = int768_add_(res, mnt4753_Q);
   return res;
 }
 
@@ -187,5 +187,5 @@ __kernel void mul_field(
     int i = get_global_id(0);
     // print(input_x[i]);
     // printf("%u",i);
-    output[i].v[0] = input_x0[i].v[0] * input_x1[i].v[0];
+    output[i] = int768_mul(input_x0[i], input_x1[i]);
 }

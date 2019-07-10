@@ -21,8 +21,13 @@ using namespace std;
 char *getcwd(char *buf, size_t size);
 
 typedef struct _int768 {
-  cl_long v[12];
+  cl_ulong v[12];
 }int768;
+
+void print(int768 v) {
+  printf("%lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu\n",
+    v.v[11],v.v[10],v.v[9],v.v[8],v.v[7],v.v[6],v.v[5],v.v[4],v.v[3],v.v[2],v.v[1],v.v[0]);
+}
 
 Fq<mnt4753_pp> read_mnt4_fq(FILE* input) {
   // bigint<mnt4753_q_limbs> n;
@@ -84,9 +89,10 @@ int main(int argc, char *argv[])
 {
     // argv should be
     // { "main", "compute" or "compute-numeral", inputs, outputs }
+    printf("Running mul on inputs... %s\n", argv[2]);
 
-    printf("size of int768 %d\n", sizeof(int768));
-    printf("size of mnt4753 mont repr %d\n", libff::mnt4753_q_limbs * sizeof(mp_size_t));
+    // printf("size of int768 %d\n", sizeof(int768));
+    // printf("size of mnt4753 mont repr %d\n", libff::mnt4753_q_limbs * sizeof(mp_size_t));
     mnt4753_pp::init_public_params();
     mnt6753_pp::init_public_params();
 
@@ -109,9 +115,8 @@ int main(int argc, char *argv[])
     }
 
     while (true) {
-      printf("round \n");
+      printf("---- round ---- \n");
       size_t elts_read = fread((void *) &n, sizeof(size_t), 1, inputs);
-      printf("elts %u\n", sizeof(inputs));
       if (elts_read == 0) { break; }
 
       std::vector<Fq<mnt4753_pp>> x0;
@@ -145,11 +150,9 @@ int main(int argc, char *argv[])
       int768* vec2 = new int768[n];
       int768 t1 = {1,0,0,0,0,0,0,0,0,0,0,0};
       // monty one 
-      printf("printing ONE\n");
       Fq<mnt6753_pp> ONE = y0[0].one().mont_repr;
-      ONE.print();
+      // ONE.print();
 
-      printf("t1 %u\n", t1.v[0]);
       memcpy(&t1, &x0[0].mont_repr.data, sizeof(int768));
       gmp_printf ("limb copied %Mu\n", t1.v[11]);
       gmp_printf ("limb orignal %Mu\n", x0[0].mont_repr.data[11]);
@@ -164,14 +167,13 @@ int main(int argc, char *argv[])
         memcpy(&vec2[i], &x0[i].mont_repr.data, sizeof(int768));
       }
 
-      gmp_printf ("limb copied %Mu\n", vec2[n-1].v[11]);
+
 
       // OPENCL START
 
-      printf("Running mul on inputs... %s\n", argv[2]);
       char cwd[1024];
       if (getcwd(cwd, sizeof(cwd)) != NULL) {
-         printf("Current working dir: %s\n", cwd);
+         // printf("Current working dir: %s\n", cwd);
       } else {
          perror("getcwd() error");
          return 1;
@@ -396,8 +398,16 @@ int main(int argc, char *argv[])
 
       // Validate our results
       //
-      gmp_printf ("limb results %Mu\n", results[342].v[0]);
-      gmp_printf ("limb results %Mu\n", data_x0[342].v[0] * data_x1[342].v[0]);
+      // gmp_printf ("limb results %Mu\n", results[342].v[0]);
+      // Fq<mnt4753_pp> tt = x0[342] * x1[342];
+      // int768 ttt;
+      // memcpy(&ttt, &tt.mont_repr.data, sizeof(int768));
+      // gmp_printf ("limb results %Mu\n", ttt.v[0]);
+      printf("Kernel Result \n");
+      print(results[123]);
+      printf("CPU Result\n");
+      Fq<mnt4753_pp> tt = x0[123] * x1[123];
+      tt.print();
       correct = 0;
       for(int i = 0; i < count; i++)
       {
