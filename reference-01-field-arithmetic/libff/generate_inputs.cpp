@@ -27,7 +27,7 @@ int main(void)
 
     auto output = fopen("inputs", "w");
 
-    size_t num_instances = 10;
+    size_t num_instances = 4;
 
     srand(time(NULL));
     for (size_t j = 0; j < num_instances; ++j) {
@@ -39,11 +39,18 @@ int main(void)
       for (size_t i = 0; i < n; ++i) {
         write_mnt4_fq(output, SHA512_rng<Fq<mnt4753_pp>>(offset + i));
       }
+      offset = rand();
+      for (size_t i = 0; i < n; ++i) {
+        write_mnt4_fq(output, SHA512_rng<Fq<mnt4753_pp>>(offset + i));
+      }
 
+      offset = rand();
+      for (size_t i = 0; i < n; ++i) {
+        write_mnt6_fq(output, SHA512_rng<Fq<mnt6753_pp>>(offset + i));
+      }
       offset = rand();
       for (size_t i = 0; i < n; ++i) {
         write_mnt6_fq(output, SHA512_rng<Fq<mnt6753_pp>>(offset + i));
       }
     }
 }
-

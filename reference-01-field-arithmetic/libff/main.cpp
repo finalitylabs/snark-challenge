@@ -3,31 +3,26 @@
 
 // #define __CL_ENABLE_EXCEPTIONS
 #include <CL/cl.h>
-
-#include <libff/algebra/curves/mnt753/mnt4753/mnt4753_pp.hpp>
-#include <libff/algebra/curves/mnt753/mnt6753/mnt6753_pp.hpp>
-
-using namespace libff;
-
 #define DATA_SIZE (131072)
 #define limbs_per_elem (12)
 
+#include <libff/algebra/curves/mnt753/mnt4753/mnt4753_pp.hpp>
+#include <libff/algebra/curves/mnt753/mnt6753/mnt6753_pp.hpp>
+#include <libff/algebra/curves/mnt753/mnt4753/mnt4753_init.hpp>
+
+using namespace libff;
 #include <unistd.h>
 char *getcwd(char *buf, size_t size);
 
+Fq<mnt4753_pp> read_mnt4_fq(FILE* input) {
+  // bigint<mnt4753_q_limbs> n;
+  Fq<mnt4753_pp> x;
+  fread((void *) x.mont_repr.data, libff::mnt4753_q_limbs * sizeof(mp_size_t), 1, input);
+  return x;
+}
+
 void write_mnt4_fq(FILE* output, Fq<mnt4753_pp> x) {
   fwrite((void *) x.mont_repr.data, libff::mnt4753_q_limbs * sizeof(mp_size_t), 1, output);
-}
-
-void write_mnt6_fq(FILE* output, Fq<mnt6753_pp> x) {
-  fwrite((void *) x.mont_repr.data, libff::mnt6753_q_limbs * sizeof(mp_size_t), 1, output);
-}
-
-uint64_t* read_mnt4_fq(FILE* inputs) {
-  uint64_t* buf = (uint64_t*)calloc(limbs_per_elem, sizeof(uint64_t));
-  // the input is montgomery representation x * 2^768 whereas cuda-fixnum expects x * 2^1024 so we shift over by (1024-768)/8 bytes
-  fread((void*) buf, limbs_per_elem*sizeof(uint64_t), 1, inputs);
-  return buf;
 }
 
 Fq<mnt6753_pp> read_mnt6_fq(FILE* input) {
@@ -37,19 +32,106 @@ Fq<mnt6753_pp> read_mnt6_fq(FILE* input) {
   return x;
 }
 
+void write_mnt6_fq(FILE* output, Fq<mnt6753_pp> x) {
+  fwrite((void *) x.mont_repr.data, libff::mnt6753_q_limbs * sizeof(mp_size_t), 1, output);
+}
+
+Fq<mnt4753_pp> read_mnt4_fq_numeral(FILE* input) {
+  // bigint<mnt4753_q_limbs> n;
+  Fq<mnt4753_pp> x;
+  fread((void *) x.mont_repr.data, libff::mnt4753_q_limbs * sizeof(mp_size_t), 1, input);
+  auto b = Fq<mnt4753_pp>(x.mont_repr);
+  return b;
+}
+
+void write_mnt4_fq_numeral(FILE* output, Fq<mnt4753_pp> x) {
+  auto out_numeral = x.as_bigint();
+  fwrite((void *) out_numeral.data, libff::mnt4753_q_limbs * sizeof(mp_size_t), 1, output);
+}
+
+Fq<mnt6753_pp> read_mnt6_fq_numeral(FILE* input) {
+  // bigint<mnt4753_q_limbs> n;
+  Fq<mnt6753_pp> x;
+  fread((void *) x.mont_repr.data, libff::mnt6753_q_limbs * sizeof(mp_size_t), 1, input);
+  auto b = Fq<mnt6753_pp>(x.mont_repr);
+  return b;
+}
+
+void write_mnt6_fq_numeral(FILE* output, Fq<mnt6753_pp> x) {
+  auto out_numeral = x.as_bigint();
+  fwrite((void *) out_numeral.data, libff::mnt6753_q_limbs * sizeof(mp_size_t), 1, output);
+}
+
+void print_array(uint8_t* a) {
+  for (int j = 0; j < 96; j++) {
+    printf("%x ", ((uint8_t*)(a))[j]);
+  }
+  printf("\n");
+}
+
 // The actual code for doing Fq multiplication lives in libff/algebra/fields/fp.tcc
 int main(int argc, char *argv[])
 {
     // argv should be
-    // { "main", "compute", inputs, outputs }
+    // { "main", "compute" or "compute-numeral", inputs, outputs }
 
     mnt4753_pp::init_public_params();
     mnt6753_pp::init_public_params();
 
     size_t n;
 
+    auto is_numeral = strcmp(argv[1], "compute-numeral") == 0;
     auto inputs = fopen(argv[2], "r");
     auto outputs = fopen(argv[3], "w");
+
+    auto read_mnt4 = read_mnt4_fq;
+    auto read_mnt6 = read_mnt6_fq;
+    auto write_mnt4 = write_mnt4_fq;
+    auto write_mnt6 = write_mnt6_fq;
+    if (is_numeral) {
+      read_mnt4 = read_mnt4_fq_numeral;
+      read_mnt6 = read_mnt6_fq_numeral;
+      write_mnt4 = write_mnt4_fq_numeral;
+      write_mnt6 = write_mnt6_fq_numeral;
+
+    }
+
+    while (true) {
+      printf("weeee\n");
+      size_t elts_read = fread((void *) &n, sizeof(size_t), 1, inputs);
+      printf("elts %u\n", sizeof(inputs));
+      if (elts_read == 0) { break; }
+
+      std::vector<Fq<mnt4753_pp>> x0;
+      for (size_t i = 0; i < n; ++i) {
+        x0.emplace_back(read_mnt4(inputs));
+      }
+
+      std::vector<Fq<mnt4753_pp>> x1;
+      for (size_t i = 0; i < n; ++i) {
+        x1.emplace_back(read_mnt4(inputs));
+      }
+
+      std::vector<Fq<mnt6753_pp>> y0;
+      for (size_t i = 0; i < n; ++i) {
+        y0.emplace_back(read_mnt6(inputs));
+      }
+      std::vector<Fq<mnt6753_pp>> y1;
+      for (size_t i = 0; i < n; ++i) {
+        y1.emplace_back(read_mnt6(inputs));
+      }
+
+      for (size_t i = 0; i < n; ++i) {
+        write_mnt4(outputs, x0[i] * x1[i]);
+      }
+
+      for (size_t i = 0; i < n; ++i) {
+        write_mnt6(outputs, y0[i] * y1[i]);
+      }
+    }
+
+
+    // OPENCL START
 
     printf("Running mul on inputs... %s\n", argv[2]);
     char cwd[1024];
@@ -64,7 +146,7 @@ int main(int argc, char *argv[])
     char *source_str;
     size_t source_size, program_size;
 
-    fp = fopen("../../kernels/square.cl", "r");
+    fp = fopen("kernels/square.cl", "r");
     if (!fp) {
         fprintf(stderr, "could not open program file\n");
         exit(1);
@@ -103,22 +185,47 @@ int main(int argc, char *argv[])
     
     // Connect to a compute device
     //
-    int gpu = 1;
-    err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, &device_id, NULL);
-    if (err != CL_SUCCESS)
-    {
-        printf("Error: Failed to create a device group!\n");
-        return EXIT_FAILURE;
-    }
 
-    printf("Device id: %u\n", device_id);
+    /* get platform number of OpenCL */
+    cl_uint  num_platforms = 0;
+    clGetPlatformIDs (0, NULL, &num_platforms);
+    printf("num_platforms: %d\n", (int)num_platforms);
 
-    clGetDeviceInfo(device_id, CL_DEVICE_NAME, 128, name, NULL);
+    /* allocate a segment of mem space, so as to store supported platform info */
+    cl_platform_id *platforms = (cl_platform_id *) malloc (num_platforms * sizeof (cl_platform_id));
+
+    /* get platform info */
+    clGetPlatformIDs (num_platforms, platforms, NULL);
+
+    /* get device number on platform */
+    cl_uint num_devices = 0;
+    clGetDeviceIDs (platforms[0], CL_DEVICE_TYPE_GPU, 0, NULL, &num_devices);
+    printf("num_devices: %d\n", (int)num_devices);
+
+    /* allocate a segment of mem space, to store device info, supported by platform */
+    cl_device_id *devices;
+    devices = (cl_device_id *) malloc (num_devices * sizeof (cl_device_id));
+
+    /* get device info */
+    clGetDeviceIDs (platforms[0], CL_DEVICE_TYPE_GPU, num_devices, devices, NULL);
+
+    // int gpu = 1;
+    // err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, &device_id, NULL);
+    // if (err != CL_SUCCESS)
+    // {
+    //     printf("Error: Failed to create a device group!\n");
+    //     return EXIT_FAILURE;
+    // }
+
+    printf("Device id: %u\n", devices[0]);
+
+    clGetDeviceInfo(devices[0], CL_DEVICE_NAME, 128, name, NULL);
     fprintf(stdout, "Created a dispatch queue using the %s\n", name);
 
     // Create a compute context 
     //
-    context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
+    printf("creating context\n");
+    context = clCreateContext(0, num_devices, devices, NULL, NULL, &err);
     if (!context)
     {
         printf("Error: Failed to create a compute context!\n");
@@ -127,7 +234,7 @@ int main(int argc, char *argv[])
 
     // Create a command commands
     //
-    commands = clCreateCommandQueue(context, device_id, 0, &err);
+    commands = clCreateCommandQueue(context, devices[0], 0, &err);
     if (!commands)
     {
         printf("Error: Failed to create a command commands!\n");
@@ -145,7 +252,8 @@ int main(int argc, char *argv[])
 
     // Build the program executable
     //
-    err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+    printf("building program\n");
+    err = clBuildProgram(program, num_devices, devices, NULL, NULL, NULL);
     if (err != CL_SUCCESS)
     {
         size_t len;
@@ -168,6 +276,7 @@ int main(int argc, char *argv[])
 
     // Create the input and output arrays in device memory for our calculation
     //
+    printf("creating buffer\n");
     input = clCreateBuffer(context,  CL_MEM_READ_ONLY,  sizeof(cl_ulong8) * count, NULL, NULL);
     output = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_ulong8) * count, NULL, NULL);
 
@@ -202,7 +311,7 @@ int main(int argc, char *argv[])
 
     // Get the maximum work group size for executing the kernel on the device
     //
-    err = clGetKernelWorkGroupInfo(kernel, device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);
+    err = clGetKernelWorkGroupInfo(kernel, devices[0], CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);
     if (err != CL_SUCCESS)
     {
         printf("Error: Failed to retrieve kernel work group info! %d\n", err);
@@ -215,6 +324,7 @@ int main(int argc, char *argv[])
     // using the maximum number of work group items for this device
     //
     global = count;
+    printf("queueing kernel");
     err = clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
     if (err)
     {
@@ -255,41 +365,8 @@ int main(int argc, char *argv[])
     clReleaseCommandQueue(commands);
     clReleaseContext(context);
 
-    while (true) {
-      printf("weeee\n");
-      size_t elts_read = fread((void *) &n, sizeof(size_t), 1, inputs);
-      printf("elts %u\n", sizeof(inputs));
-      if (elts_read == 0) { break; }
+    // OPENCL END
 
-      std::vector<uint64_t*> x;
-      for (size_t i = 0; i < n; ++i) {
-        //printf("%u\n", read_mnt4_fq(inputs));
-        x.emplace_back(read_mnt4_fq(inputs));
-      }
-      printf("%u\n", *x[123]);
-      std::vector<Fq<mnt6753_pp>> y;
-      for (size_t i = 0; i < n; ++i) {
-        y.emplace_back(read_mnt6_fq(inputs));
-      }
-      printf("%u\n", &y[123]);
-
-
-      //uint64_t* out_x[limbs_per_elem] = {1,0,0,0,0,0,0,0,0,0,0,0};
-      // uint64_t* out_x = (uint64_t*)calloc(limbs_per_elem, sizeof(uint64_t));
-      // for (size_t i = 0; i < n; ++i) {
-      //   out_x *= x[i];
-      // }
-
-      // Fq<mnt6753_pp> out_y = Fq<mnt6753_pp>::one();
-      // for (size_t i = 0; i < n; ++i) {
-      //   out_y *= y[i];
-      // }
-      // printf("%u\n", out_x);
-      // printf("%u\n", out_y);
-      // printf("%u\n", n);
-      // write_mnt4_fq(outputs, out_x);
-      // write_mnt6_fq(outputs, out_y);
-    }
     fclose(outputs);
 
     return 0;
