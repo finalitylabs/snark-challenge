@@ -141,9 +141,14 @@ int main(int argc, char *argv[])
         write_mnt6(outputs, y0[i] * y1[i]);
       }
 
-      // std::vector<int768> test;
+
       int768* vec2 = new int768[n];
       int768 t1 = {1,0,0,0,0,0,0,0,0,0,0,0};
+      // monty one 
+      printf("printing ONE\n");
+      Fq<mnt6753_pp> ONE = y0[0].one().mont_repr;
+      ONE.print();
+
       printf("t1 %u\n", t1.v[0]);
       memcpy(&t1, &x0[0].mont_repr.data, sizeof(int768));
       gmp_printf ("limb copied %Mu\n", t1.v[11]);
