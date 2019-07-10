@@ -4,7 +4,7 @@
 // B = 2^32 (Because our digits are uint32)
 
 typedef struct {
-  long v[12];
+  ulong v[12];
 } int768;
 
 typedef uint uint32;
@@ -18,10 +18,10 @@ typedef uint uint32;
 #define mnt4753_ZERO (0)
 #define mnt6753_ZERO (0)
 
-#define mnt4753_INV_Fp ((long)0xc90776e23fffffff)
-#define mnt4753_INV_Fq ((long)0xf2044cfbe45e7fff)
-#define mnt6753_INV_Fp ((long)0xf2044cfbe45e7fff)
-#define mnt6753_INV_Fq ((long)0xc90776e23fffffff)
+#define mnt4753_INV_Fp ((ulong)0xc90776e23fffffff)
+#define mnt4753_INV_Fq ((ulong)0xf2044cfbe45e7fff)
+#define mnt6753_INV_Fp ((ulong)0xf2044cfbe45e7fff)
+#define mnt6753_INV_Fq ((ulong)0xc90776e23fffffff)
 
 #define mnt4753_Q ((int768){0x01C4C62D92C41110,0x229022EEE2CDADB7,0xF997505B8FAFED5E,0xB7E8F96C97D87307,0xFDB925E8A0ED8D99,0xD124D9A15AF79DB1,0x17E776F218059DB8,0x0F0DA5CB537E3868,0x5ACCE9767254A463,0x8810719AC425F0E3,0x9D54522CDD119F5E,0x9063DE245E800100})
 #define mnt6753_Q ((int768){0x01C4C62D92C41110,0x229022EEE2CDADB7,0xF997505B8FAFED5E,0xB7E8F96C97D87307,0xFDB925E8A0ED8D99,0xD124D9A15AF79DB2,0x6C5C28C859A99B3E,0xEBCA9429212636B9,0xDFF97634993AA4D6,0xC381BC3F0057974E,0xA099170FA13A4FD9,0x0776E24000000100})
@@ -35,8 +35,8 @@ void print(int768 v) {
 }
 
 // Adds `num` to `i`th digit of `res` and propagates carry in case of overflow
-void add_digit(long *res, long num) {
-  long old = *res;
+void add_digit(ulong *res, ulong num) {
+  ulong old = *res;
   *res += num;
   if(*res < old) {
     res++;
@@ -44,9 +44,9 @@ void add_digit(long *res, long num) {
   }
 }
 
-long mac_with_carry(long a, long b, long c, long *carry) {
-  long lo = a * b;
-  long hi = mul_hi(a, b);
+ulong mac_with_carry(ulong a, ulong b, ulong c, ulong *carry) {
+  ulong lo = a * b;
+  ulong hi = mul_hi(a, b);
   hi += lo + c < lo; lo += c;
   hi += lo + *carry < lo; lo += *carry;
   *carry = hi;
@@ -76,7 +76,7 @@ bool int768_eq(int768 a, int768 b) {
 int768 int768_add_(int768 a, int768 b) {
   uint32 carry = 0;
   for(int i = 0; i < FIELD_LIMBS; i++) {
-    long old = a.v[i];
+    ulong old = a.v[i];
     a.v[i] += b.v[i] + carry;
     carry = carry ? old >= a.v[i] : old > a.v[i];
   }
@@ -87,7 +87,7 @@ int768 int768_add_(int768 a, int768 b) {
 int768 int768_sub_(int768 a, int768 b) {
   uint32 borrow = 0;
   for(int i = 0; i < FIELD_LIMBS; i++) {
-    long old = a.v[i];
+    ulong old = a.v[i];
     a.v[i] -= b.v[i] + borrow;
     borrow = borrow ? old <= a.v[i] : old < a.v[i];
   }
@@ -96,10 +96,10 @@ int768 int768_sub_(int768 a, int768 b) {
 
 // Modular multiplication
 int768 int768_mul(int768 a, int768 b) {
-  // Long multiplication
-  long res[FIELD_LIMBS * 2] = {0};
+  // long multiplication
+  ulong res[FIELD_LIMBS * 2] = {0};
   for(uint32 i = 0; i < FIELD_LIMBS; i++) {
-    long carry = 0;
+    ulong carry = 0;
     for(uint32 j = 0; j < FIELD_LIMBS; j++) {
       res[i + j] = mac_with_carry(a.v[i], b.v[j], res[i + j], &carry);
     }
@@ -108,8 +108,8 @@ int768 int768_mul(int768 a, int768 b) {
 
   // Montgomery reduction
   for(uint32 i = 0; i < FIELD_LIMBS; i++) {
-    long u = mnt4753_INV_Fq * res[i];
-    long carry = 0;
+    ulong u = mnt4753_INV_Fq * res[i];
+    ulong carry = 0;
     for(uint32 j = 0; j < FIELD_LIMBS; j++)
       res[i + j] = mac_with_carry(u, mnt4753_Q.v[j], res[i + j], &carry);
     add_digit(res + i + FIELD_LIMBS, carry);
