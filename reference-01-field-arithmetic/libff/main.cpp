@@ -21,11 +21,14 @@ using namespace std;
 char *getcwd(char *buf, size_t size);
 
 typedef struct _int768 {
-  cl_ulong v[12];
+  cl_long v[12];
 }int768;
 
 void print(int768 v) {
-  printf("%lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu\n",
+  //gmp_printf("%Nd\n", this->data, n);
+  mp_size_t size = 12;
+  gmp_printf("gmp format: %Nu\n", &v, size);
+  gmp_printf("standard format: %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu\n",
     v.v[11],v.v[10],v.v[9],v.v[8],v.v[7],v.v[6],v.v[5],v.v[4],v.v[3],v.v[2],v.v[1],v.v[0]);
 }
 
@@ -147,24 +150,33 @@ int main(int argc, char *argv[])
       }
 
 
-      int768* vec2 = new int768[n];
+      int768* vec = new int768[n];
       int768 t1 = {1,0,0,0,0,0,0,0,0,0,0,0};
+      int768 t2 = {1,0,0,0,0,0,0,0,0,0,0,0};
       // monty one 
-      Fq<mnt6753_pp> ONE = y0[0].one().mont_repr;
+      mp_limb_t ONE = *y0[0].one().mont_repr.data;
+      cl_long testing = 0;
       // ONE.print();
+      memcpy(&t2, &ONE, sizeof(int768));
+      print(t2);
+      mp_size_t size = 12;
+      gmp_printf("gmp one hex format: %Nx\n", &ONE, size);
 
       memcpy(&t1, &x0[0].mont_repr.data, sizeof(int768));
-      gmp_printf ("limb copied %Mu\n", t1.v[11]);
-      gmp_printf ("limb orignal %Mu\n", x0[0].mont_repr.data[11]);
-      // gmp_printf("x0 mont data %Nd\n", x0[0].mont_repr.data, n);
-      x0[123].mont_repr.print();
-      cout << typeid(x0[123]).name() << endl;
-      cout << typeid(x0[123].mont_repr.data).name() << endl;
+      printf("limb copied\n");
+      print(t1);
+
+      printf("limb orignal\n");
+      x0[0].mont_repr.print();
+      //std::vector<cl_ulong> buffer(12);
+      //mpz_import((void*) buffer.data(), libff::mnt4753_q_limbs * sizeof(mp_size_t), 1,1,0,0, x0[0].mont_repr.data[0]);
+      //cout << typeid(x0[123]).name() << endl;
+      //cout << typeid(&x0[123].mont_repr.data).name() << endl;
       printf("num bits %u\n", x0[123].num_bits);
 
       // copy into ocl friendly data type
       for (size_t i = 0; i <n; i++) {
-        memcpy(&vec2[i], &x0[i].mont_repr.data, sizeof(int768));
+        memcpy(&vec[i], &x0[i].mont_repr.data, sizeof(int768));
       }
 
 
@@ -221,12 +233,21 @@ int main(int argc, char *argv[])
       // Fill our data set with field inputs from param gen
       //
       unsigned int count = n;
+      mp_size_t num = 1;
       for(int i = 0; i < count; i++) {
-          memcpy(&data_x0[i], &x0[i].mont_repr.data, sizeof(int768));
+        memcpy(&data_x0[i], &x0[i].mont_repr.data, sizeof(int768));
+        //data_x0[i].v = x0[i].mont_repr.data;
+        //for(int j=0; j<12; j++)
+          //mpn_copyd(&data_x0[i].v[j], &x0[i].mont_repr.data[j], num);
       }
 
+      print(data_x0[0]);
+
+
       for(int i = 0; i < count; i++) {
-          memcpy(&data_x1[i], &x1[i].mont_repr.data, sizeof(int768));
+        memcpy(&data_x1[i], &x1[i].mont_repr.data, sizeof(int768));
+        //data_x1[i] = x1[i].mont_repr.data; 
+        //mpn_copyd(&data_x1[i].v[0], &x1[i].mont_repr.data[0], num);
       }
       
       // Connect to a compute device
@@ -404,9 +425,9 @@ int main(int argc, char *argv[])
       // memcpy(&ttt, &tt.mont_repr.data, sizeof(int768));
       // gmp_printf ("limb results %Mu\n", ttt.v[0]);
       printf("Kernel Result \n");
-      print(results[123]);
+      print(results[0]);
       printf("CPU Result\n");
-      Fq<mnt4753_pp> tt = x0[123] * x1[123];
+      Fq<mnt4753_pp> tt = x0[0] * x1[0];
       tt.print();
       correct = 0;
       for(int i = 0; i < count; i++)
@@ -432,6 +453,7 @@ int main(int argc, char *argv[])
       clReleaseContext(context);
 
       // OPENCL END
+      break;
     }
 
     fclose(outputs);
