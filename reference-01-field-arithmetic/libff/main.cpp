@@ -21,15 +21,15 @@ using namespace std;
 char *getcwd(char *buf, size_t size);
 
 typedef struct _int768 {
-  cl_long v[12];
+  cl_uint v[24];
 }int768;
 
 void print(int768 v) {
   //gmp_printf("%Nd\n", this->data, n);
   mp_size_t size = 12;
   gmp_printf("gmp format: %Nu\n", &v, size);
-  gmp_printf("standard format: %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu\n",
-    v.v[11],v.v[10],v.v[9],v.v[8],v.v[7],v.v[6],v.v[5],v.v[4],v.v[3],v.v[2],v.v[1],v.v[0]);
+  gmp_printf("standard format: %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu\n",
+    v.v[23],v.v[22],v.v[21],v.v[20],v.v[19],v.v[18],v.v[17],v.v[16],v.v[15],v.v[14],v.v[13],v.v[12],v.v[11],v.v[10],v.v[9],v.v[8],v.v[7],v.v[6],v.v[5],v.v[4],v.v[3],v.v[2],v.v[1],v.v[0]);
 }
 
 Fq<mnt4753_pp> read_mnt4_fq(FILE* input) {
@@ -94,6 +94,7 @@ int main(int argc, char *argv[])
     // { "main", "compute" or "compute-numeral", inputs, outputs }
     printf("Running mul on inputs... %s\n", argv[2]);
 
+    printf("limb count %u\n", libff::mnt4753_q_limbs);
     // printf("size of int768 %d\n", sizeof(int768));
     // printf("size of mnt4753 mont repr %d\n", libff::mnt4753_q_limbs * sizeof(mp_size_t));
     mnt4753_pp::init_public_params();
@@ -151,11 +152,10 @@ int main(int argc, char *argv[])
 
 
       int768* vec = new int768[n];
-      int768 t1 = {1,0,0,0,0,0,0,0,0,0,0,0};
-      int768 t2 = {1,0,0,0,0,0,0,0,0,0,0,0};
+      int768 t1 = {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+      int768 t2 = {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
       // monty one 
       mp_limb_t ONE = *y0[0].one().mont_repr.data;
-      cl_long testing = 0;
       // ONE.print();
       memcpy(&t2, &ONE, sizeof(int768));
       print(t2);
@@ -168,6 +168,7 @@ int main(int argc, char *argv[])
 
       printf("limb orignal\n");
       x0[0].mont_repr.print();
+      x0[0].mont_repr.print_hex();
       //std::vector<cl_ulong> buffer(12);
       //mpz_import((void*) buffer.data(), libff::mnt4753_q_limbs * sizeof(mp_size_t), 1,1,0,0, x0[0].mont_repr.data[0]);
       //cout << typeid(x0[123]).name() << endl;
@@ -210,11 +211,11 @@ int main(int argc, char *argv[])
       int err;                            // error code returned from api calls
       char name[128];
         
-      int768* data_x0 = new int768[n];              // original data set given to device
+      Fq<mnt4753_pp>* data_x0 = new Fq<mnt4753_pp>[n];              // original data set given to device
       int768* data_x1 = new int768[n];              // original data set given to device
       int768* data_y0 = new int768[n];              // original data set given to device
       int768* data_y1 = new int768[n];              // original data set given to device
-      int768 results[n];           // results returned from device
+      Fq<mnt4753_pp> results[n];           // results returned from device
       unsigned int correct;               // number of correct results returned
 
       size_t global;                      // global domain size for our calculation
@@ -240,9 +241,9 @@ int main(int argc, char *argv[])
         //for(int j=0; j<12; j++)
           //mpn_copyd(&data_x0[i].v[j], &x0[i].mont_repr.data[j], num);
       }
-
-      print(data_x0[0]);
-
+      printf("count %u\n", n);
+      //print(data_x0[1023]);
+      data_x0[0].mont_repr.print();
 
       for(int i = 0; i < count; i++) {
         memcpy(&data_x1[i], &x1[i].mont_repr.data, sizeof(int768));
@@ -425,16 +426,17 @@ int main(int argc, char *argv[])
       // memcpy(&ttt, &tt.mont_repr.data, sizeof(int768));
       // gmp_printf ("limb results %Mu\n", ttt.v[0]);
       printf("Kernel Result \n");
-      print(results[0]);
+      //print(results[1023]);
+      results[1023].mont_repr.print();
       printf("CPU Result\n");
-      Fq<mnt4753_pp> tt = x0[0] * x1[0];
-      tt.print();
+      Fq<mnt4753_pp> tt = x0[1023] + x1[1023];
+      tt.mont_repr.print();
       correct = 0;
       for(int i = 0; i < count; i++)
       {
-          if(results[i].v[0] == data_x0[i].v[0] * data_x1[i].v[0]) {
-              correct++;
-              // printf("found match %u\n", i);
+          Fq<mnt4753_pp> add = x0[i] + x1[i];
+          if(results[i] == add) {
+             correct++;
           }
       }
       

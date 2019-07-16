@@ -65,6 +65,7 @@ template<mp_size_t n>
 void bigint<n>::print_hex() const
 {
     gmp_printf("%Nx\n", this->data, n);
+
 }
 
 template<mp_size_t n>

@@ -33,6 +33,7 @@ typedef struct {
 #define mnt6753_INV_Fr ((ulong)0xf2044cfbe45e7fff)
 #define mnt6753_INV_Fq ((ulong)0xc90776e23fffffff)
 
+// signed two's compliment
 #define mnt4753_Q ((int768){0x01C4C62D,0x92C41110,0x229022EE,0xE2CDADB7,0xF997505B,0x8FAFED5E,0xB7E8F96C,0x97D87307,0xFDB925E8,0xA0ED8D99,0xD124D9A1,0x5AF79DB1,0x17E776F2,0x18059DB8,0x0F0DA5CB,0x537E3868,0x5ACCE976,0x7254A463,0x8810719A,0xC425F0E3,0x9D54522C,0xDD119F5E,0x9063DE24,0x5E8001})
 
 //#define mnt6753_Q ((int768){0x01C4C62D92C41110,0x229022EEE2CDADB7,0xF997505B8FAFED5E,0xB7E8F96C97D87307,0xFDB925E8A0ED8D99,0xD124D9A15AF79DB2,0x6C5C28C859A99B3E,0xEBCA9429212636B9,0xDFF97634993AA4D6,0xC381BC3F0057974E,0xA099170FA13A4FD9,0x0776E240000001})
@@ -55,6 +56,26 @@ bool int768_gte(int768 a, int768 b) {
   }
   return true;
 }
+
+// Adds `num` to `i`th digit of `res` and propagates carry in case of overflow
+void add_digit(limb *res, limb num) {
+  limb old = *res;
+  *res += num;
+  if(*res < old) {
+    res++;
+    while(++(*(res++)) == 0);
+  }
+}
+
+limb mac_with_carry(limb a, limb b, limb c, limb *carry) {
+  limb lo = a * b;
+  limb hi = mul_hi(a, b);
+  hi += lo + c < lo; lo += c;
+  hi += lo + *carry < lo; lo += *carry;
+  *carry = hi;
+  return lo;
+}
+
 
 // Equals
 bool int768_eq(int768 a, int768 b) {
@@ -120,19 +141,19 @@ int768 int768_reduce(ulong *limbs) {
 
 // Modular multiplication
 int768 int768_mul(int768 a, int768 b) {
-  // Long multiplication
+  // long multiplication
   limb res[FIELD_LIMBS * 2] = {0};
-  for(uchar i = 0; i < FIELD_LIMBS; i++) {
+  for(uint32 i = 0; i < FIELD_LIMBS; i++) {
     limb carry = 0;
-    for(uchar j = 0; j < FIELD_LIMBS; j++) {
+    for(uint32 j = 0; j < FIELD_LIMBS; j++) {
       limb2 product = (limb2)a.v[i] * b.v[j] + res[i + j] + carry;
       res[i + j] = product & LIMB_MAX;
-      carry = product >> LIMB_BITS;
+      //res[i + j] = mac_with_carry(a.v[i], b.v[j], res[i + j], &carry);
     }
     res[i + FIELD_LIMBS] = carry;
   }
-
   return int768_reduce(res);
+
 }
 
 // Modular negation
@@ -149,9 +170,10 @@ int768 int768_sub(int768 a, int768 b) {
 
 // Modular addition
 int768 int768_add(int768 a, int768 b) {
-  int768 res = int768_add_(a, b);
-  if(int768_gte(res, mnt4753_Q)) res = int768_sub_(res, mnt4753_Q);
-  return res;
+  return int768_sub(a, int768_neg(b));
+  //int768 res = int768_sub_(a, b);
+  //if(!int768_gte(a, b)) res = int768_add_(res, mnt4753_Q);
+  //return res;
 }
 
 // Modular exponentiation
@@ -197,8 +219,11 @@ __kernel void mul_field(
     const unsigned int count)
 {
     int i = get_global_id(0);
-    if(i == 0)
+    if(i == 0) {
       print(input_x0[i]);
+      print(mnt4753_Q);
+    }
     // printf("%u",i);
-    output[i] = int768_mul(input_x0[i], input_x1[i]);
+    output[i] = int768_add(input_x0[i], input_x1[i]);
+    //output[i] = input_x0[i];
 }

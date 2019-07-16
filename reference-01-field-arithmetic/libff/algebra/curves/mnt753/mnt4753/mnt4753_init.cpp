@@ -43,7 +43,7 @@ void init_mnt4753_params()
     typedef bigint<mnt4753_q_limbs> bigint_q;
 
     assert(sizeof(mp_limb_t) == 8 || sizeof(mp_limb_t) == 4); // Montgomery assumes this
-
+    printf("mp_limb_t %u\n", sizeof(mp_limb_t));
     /* parameters for scalar field Fr */
     mnt4753_modulus_r = bigint_r("41898490967918953402344214791240637128170709919953949071783502921025352812571106773058893763790338921418070971888458477323173057491593855069696241854796396165721416325350064441470418137846398469611935719059908164220784476160001");
     assert(mnt4753_Fr::modulus_is_valid());
