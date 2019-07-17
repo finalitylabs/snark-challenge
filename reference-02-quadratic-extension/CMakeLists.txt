@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 2.8)
 
 project (libff)
 
+find_package( OpenCL REQUIRED )
+
+include_directories( ${OPENCL_INCLUDE_DIR} )
+
+link_directories(${OpenCL_LIBRARY})
+
 set(
   CURVE
   "BN128"
@@ -54,7 +60,7 @@ option(
 option(
   WITH_PROCPS
   "Use procps for memory profiling"
-  ON
+  OFF
 )
 
 option(
