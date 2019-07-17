@@ -111,12 +111,13 @@ int768 int768_add_(int768 a, int768 b) {
 int768 int768_sub_(int768 a, int768 b) {
   bool borrow = 0;
   for(int i = 0; i < FIELD_LIMBS; i++) {
-    //limb2 sub = (limb2)a.v[i] - b.v[i] - borrow;
-    //a.v[i] = sub & LIMB_MAX;
-    //borrow = (sub >> LIMB_BITS) & 1;
-    ulong old = a.v[i];
-    a.v[i] -= b.v[i] + borrow;
-    borrow = borrow ? old <= a.v[i] : old < a.v[i];
+    limb2 sub = (limb2)a.v[i] - b.v[i] - borrow;
+    a.v[i] = sub & LIMB_MAX;
+    borrow = (sub >> LIMB_BITS) & 1;
+    // "still works for sub but removing for consistency"
+    //ulong old = a.v[i];
+    //a.v[i] -= b.v[i] + borrow;
+    //borrow = borrow ? old <= a.v[i] : old < a.v[i];
   }
   return a;
 }
@@ -157,6 +158,7 @@ int768 int768_mul(int768 a, int768 b) {
     for(uint32 j = 0; j < FIELD_LIMBS; j++) {
       limb2 product = (limb2)a.v[i] * b.v[j] + res[i + j] + carry;
       res[i + j] = product & LIMB_MAX;
+      carry = product >> LIMB_BITS;
       //res[i + j] = mac_with_carry(a.v[i], b.v[j], res[i + j], &carry);
     }
     res[i + FIELD_LIMBS] = carry;
@@ -257,8 +259,9 @@ __kernel void mul_field(
       print(mnt4753_Q);
     }
     // printf("%u",i);
-    //output[i] = int768_mul(input_x0[i], input_x1[i]);
-    output[i] = int768_add(input_x0[i], input_x1[i]);
+    output[i] = int768_mul(input_x0[i], input_x1[i]);
+    //output[i] = int768_add(input_x0[i], input_x1[i]);
+    //output[i] = int768_sub(input_x0[i], input_x1[i]);
     //output[i] = int768_neg(input_x1[i]);
     //output[i] = mnt4753_Q;
 }

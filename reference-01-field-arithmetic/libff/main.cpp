@@ -9,7 +9,9 @@
 #include <libff/algebra/curves/mnt753/mnt4753/mnt4753_pp.hpp>
 #include <libff/algebra/curves/mnt753/mnt6753/mnt6753_pp.hpp>
 #include <libff/algebra/curves/mnt753/mnt4753/mnt4753_init.hpp>
+#include <chrono> 
 
+using namespace std::chrono; 
 using namespace libff;
 using namespace std;
 
@@ -24,8 +26,6 @@ char *getcwd(char *buf, size_t size);
 typedef struct _int768 {
   cl_uint v[24];
 }int768;
-
-#define mnt4753_Q ((int768){0x5e9063de,0x245e8001,0xe39d5452,0x2cdd119f,0x63881071,0x9ac425f0,0x685acce9,0x767254a4,0xb80f0da5,0xcb537e38,0xb117e776,0xf218059d,0x99d124d9,0xa15af79d,0x7fdb925,0xe8a0ed8d,0x5eb7e8f9,0x6c97d873,0xb7f99750,0x5b8fafed,0x10229022,0xeee2cdad,0x1c4c6,0x2d92c411})
 
 void print(int768 v) {
   //gmp_printf("%Nd\n", this->data, n);
@@ -96,7 +96,6 @@ int main(int argc, char *argv[])
     // argv should be
     // { "main", "compute" or "compute-numeral", inputs, outputs }
     printf("Running mul on inputs... %s\n", argv[2]);
-
     printf("limb count %u\n", libff::mnt4753_q_limbs);
 
     // printf("size of int768 %d\n", sizeof(int768));
@@ -146,17 +145,22 @@ int main(int argc, char *argv[])
         y1.emplace_back(read_mnt6(inputs));
       }
 
+      auto start = high_resolution_clock::now();
       for (size_t i = 0; i < n; ++i) {
         write_mnt4(outputs, x0[i] * x1[i]);
       }
+      auto stop = high_resolution_clock::now();
+      auto duration = duration_cast<microseconds>(stop - start); 
+      cout << "Time taken by CPU function: "
+        << duration.count() << " microseconds" << endl;
 
       for (size_t i = 0; i < n; ++i) {
         write_mnt6(outputs, y0[i] * y1[i]);
       }
 
-      printf("mod\n");
-      x0[0].mod.print();
-      for(int i=0; i<23; i++) {
+      printf("mnt4753 mod:\n");
+      x0[0].mod.print_hex();
+      for(int i=0; i<11; i++) {
         //printf("%x\n", x0[0].mod.data[i]);
         cl_uint x;
         cl_uint y;
@@ -167,36 +171,13 @@ int main(int argc, char *argv[])
         printf("%x\n", y);
       }
       mp_size_t siz = 1;
-      gmp_printf("inverse: %Nu\n", &x0[0].inv, siz);
-      int768* vec = new int768[n];
-      int768 t1 = {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-      int768 t2 = {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+      gmp_printf("inverse 64bit: %Nu\n", &x0[0].inv, siz);
+
       // monty one 
-      mp_limb_t ONE = *y0[0].one().mont_repr.data;
-      // ONE.print();
-      memcpy(&t2, &ONE, sizeof(int768));
-      print(t2);
-      mp_size_t size = 12;
-      gmp_printf("gmp one hex format: %Nx\n", &ONE, size);
+      printf("mnt4753 ONE:\n");
+      x0[0].one().mont_repr.print();
 
-      memcpy(&t1, &x0[0].mont_repr.data, sizeof(int768));
-      printf("limb copied\n");
-      print(t1);
-
-      printf("limb orignal\n");
-      x0[0].mont_repr.print();
-      x0[0].mont_repr.print_hex();
-      //std::vector<cl_ulong> buffer(12);
-      //mpz_import((void*) buffer.data(), libff::mnt4753_q_limbs * sizeof(mp_size_t), 1,1,0,0, x0[0].mont_repr.data[0]);
-      //cout << typeid(x0[123]).name() << endl;
-      //cout << typeid(&x0[123].mont_repr.data).name() << endl;
       printf("num bits %u\n", x0[123].num_bits);
-
-      // copy into ocl friendly data type
-      for (size_t i = 0; i <n; i++) {
-        memcpy(&vec[i], &x0[i].mont_repr.data, sizeof(int768));
-      }
-
 
 
       // OPENCL START
@@ -242,6 +223,10 @@ int main(int argc, char *argv[])
       cl_command_queue commands;          // compute command queue
       cl_program program;                 // compute program
       cl_kernel kernel;                   // compute kernel
+      cl_event event;                     // timing
+      cl_ulong time_start;
+      cl_ulong time_end;
+
       
       cl_mem input_x0;                       // device memory used for the input array
       cl_mem input_x1;                       // device memory used for the input array
@@ -254,18 +239,13 @@ int main(int argc, char *argv[])
       mp_size_t num = 1;
       for(int i = 0; i < count; i++) {
         memcpy(&data_x0[i], &x0[i].mont_repr.data, sizeof(int768));
-        //data_x0[i].v = x0[i].mont_repr.data;
-        //for(int j=0; j<12; j++)
-          //mpn_copyd(&data_x0[i].v[j], &x0[i].mont_repr.data[j], num);
       }
       printf("count %u\n", n);
-      //print(data_x0[1023]);
+
       data_x0[0].mont_repr.print();
 
       for(int i = 0; i < count; i++) {
         memcpy(&data_x1[i], &x1[i].mont_repr.data, sizeof(int768));
-        //data_x1[i] = x1[i].mont_repr.data; 
-        //mpn_copyd(&data_x1[i].v[0], &x1[i].mont_repr.data[0], num);
       }
       
       // Connect to a compute device
@@ -319,7 +299,7 @@ int main(int argc, char *argv[])
 
       // Create a command commands
       //
-      commands = clCreateCommandQueue(context, devices[0], 0, &err);
+      commands = clCreateCommandQueue(context, devices[0], CL_QUEUE_PROFILING_ENABLE, &err);
       if (!commands)
       {
           printf("Error: Failed to create a command commands!\n");
@@ -374,7 +354,7 @@ int main(int argc, char *argv[])
 
       // Write our data set into the input array in device memory 
       //
-
+      start = high_resolution_clock::now();
       err = clEnqueueWriteBuffer(commands, input_x0, CL_TRUE, 0, sizeof(int768) * count, data_x0, 0, NULL, NULL);
       if (err != CL_SUCCESS)
       {
@@ -387,6 +367,10 @@ int main(int argc, char *argv[])
           printf("Error: Failed to write to source array!\n");
           exit(1);
       }
+      stop = high_resolution_clock::now();
+      duration = duration_cast<microseconds>(stop - start); 
+      cout << "Time taken by GPU write function: "
+        << duration.count() << " microseconds" << endl;
 
       // Set the arguments to our compute kernel
       //
@@ -417,38 +401,51 @@ int main(int argc, char *argv[])
       //
       global = count;
       printf("queueing kernel\n");
-      err = clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+      err = clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local, 0, NULL, &event);
       if (err)
       {
           printf("Error: Failed to execute kernel!\n");
           return EXIT_FAILURE;
       }
 
+      clWaitForEvents(1, &event);
       clFinish(commands);
+
+      // Time kernel execution time without read/write
+      //
+      clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
+      clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
+
+      double nanoSeconds = time_end-time_start;
+      printf("OpenCl Execution time is: %0.3f milliseconds \n",nanoSeconds / 1000000.0);
 
       // Read back the results from the device to verify the output
       //
+      start = high_resolution_clock::now();
       err = clEnqueueReadBuffer( commands, output_x, CL_TRUE, 0, sizeof(int768) * count, results, 0, NULL, NULL );  
       if (err != CL_SUCCESS)
       {
           printf("Error: Failed to read output array! %d\n", err);
           exit(1);
       }
-
+      stop = high_resolution_clock::now();
+      duration = duration_cast<microseconds>(stop - start); 
+      cout << "Time taken by GPU read function: "
+        << duration.count() << " microseconds" << endl;
       // Validate our results
       //
       printf("Kernel Result \n");
       //print(results[1014]);
       results[1013].mont_repr.print();
       printf("CPU Result\n");
-      Fq<mnt4753_pp> tt = x0[1013] + x1[1013];
+      Fq<mnt4753_pp> tt = x0[1013] * x1[1013];
       tt.mont_repr.print();
       correct = 0;
       int bad = 0;
       for(int i = 0; i < count; i++)
       {
-          Fq<mnt4753_pp> add = x0[i] + x1[i];
-          if(results[i] == add) {
+          Fq<mnt4753_pp> mul = x0[i] * x1[i];
+          if(results[i] == mul) {
             correct++;
           } else if(i <1017) {
            bad = i;
@@ -457,12 +454,10 @@ int main(int argc, char *argv[])
       
       // Print a brief summary detailing the results
       //
-      printf("Computed '%d/%d' correct values!\n", correct, count);
+      printf("Computed '%d/%d' correct mnt4753 values!\n", correct, count);
       printf("last bad output %d\n", bad);
       //x0[1014].mont_repr.print();
       //x1[1014].mont_repr.print();
-      //printf("host Q\n");
-      //print(mnt4753_Q);
       // Shutdown and cleanup
       //
       clReleaseMemObject(input_x0);
@@ -474,7 +469,7 @@ int main(int argc, char *argv[])
       clReleaseContext(context);
 
       // OPENCL END
-      break;
+      //break;
     }
 
     fclose(outputs);
