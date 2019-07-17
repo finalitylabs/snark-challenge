@@ -20,9 +20,12 @@ using namespace std;
 
 char *getcwd(char *buf, size_t size);
 
+
 typedef struct _int768 {
   cl_uint v[24];
 }int768;
+
+#define mnt4753_Q ((int768){0x5e9063de,0x245e8001,0xe39d5452,0x2cdd119f,0x63881071,0x9ac425f0,0x685acce9,0x767254a4,0xb80f0da5,0xcb537e38,0xb117e776,0xf218059d,0x99d124d9,0xa15af79d,0x7fdb925,0xe8a0ed8d,0x5eb7e8f9,0x6c97d873,0xb7f99750,0x5b8fafed,0x10229022,0xeee2cdad,0x1c4c6,0x2d92c411})
 
 void print(int768 v) {
   //gmp_printf("%Nd\n", this->data, n);
@@ -95,6 +98,7 @@ int main(int argc, char *argv[])
     printf("Running mul on inputs... %s\n", argv[2]);
 
     printf("limb count %u\n", libff::mnt4753_q_limbs);
+
     // printf("size of int768 %d\n", sizeof(int768));
     // printf("size of mnt4753 mont repr %d\n", libff::mnt4753_q_limbs * sizeof(mp_size_t));
     mnt4753_pp::init_public_params();
@@ -150,7 +154,20 @@ int main(int argc, char *argv[])
         write_mnt6(outputs, y0[i] * y1[i]);
       }
 
-
+      printf("mod\n");
+      x0[0].mod.print();
+      for(int i=0; i<23; i++) {
+        //printf("%x\n", x0[0].mod.data[i]);
+        cl_uint x;
+        cl_uint y;
+        x = (cl_uint)((x0[0].mod.data[i] & 0xFFFFFFFF00000000LL) >> 32);
+        y = (cl_uint)(x0[0].mod.data[i] & 0xFFFFFFFFLL);
+        gmp_printf("%Mx\n", x0[0].mod.data[i]);
+        printf("%x\n", x);
+        printf("%x\n", y);
+      }
+      mp_size_t siz = 1;
+      gmp_printf("inverse: %Nu\n", &x0[0].inv, siz);
       int768* vec = new int768[n];
       int768 t1 = {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
       int768 t2 = {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -212,9 +229,9 @@ int main(int argc, char *argv[])
       char name[128];
         
       Fq<mnt4753_pp>* data_x0 = new Fq<mnt4753_pp>[n];              // original data set given to device
-      int768* data_x1 = new int768[n];              // original data set given to device
-      int768* data_y0 = new int768[n];              // original data set given to device
-      int768* data_y1 = new int768[n];              // original data set given to device
+      Fq<mnt4753_pp>* data_x1 = new Fq<mnt4753_pp>[n];              // original data set given to device
+      Fq<mnt4753_pp>* data_y0 = new Fq<mnt4753_pp>[n];              // original data set given to device
+      Fq<mnt4753_pp>* data_y1 = new Fq<mnt4753_pp>[n];              // original data set given to device
       Fq<mnt4753_pp> results[n];           // results returned from device
       unsigned int correct;               // number of correct results returned
 
@@ -420,30 +437,32 @@ int main(int argc, char *argv[])
 
       // Validate our results
       //
-      // gmp_printf ("limb results %Mu\n", results[342].v[0]);
-      // Fq<mnt4753_pp> tt = x0[342] * x1[342];
-      // int768 ttt;
-      // memcpy(&ttt, &tt.mont_repr.data, sizeof(int768));
-      // gmp_printf ("limb results %Mu\n", ttt.v[0]);
       printf("Kernel Result \n");
-      //print(results[1023]);
-      results[1023].mont_repr.print();
+      //print(results[1014]);
+      results[1013].mont_repr.print();
       printf("CPU Result\n");
-      Fq<mnt4753_pp> tt = x0[1023] + x1[1023];
+      Fq<mnt4753_pp> tt = x0[1013] + x1[1013];
       tt.mont_repr.print();
       correct = 0;
+      int bad = 0;
       for(int i = 0; i < count; i++)
       {
           Fq<mnt4753_pp> add = x0[i] + x1[i];
           if(results[i] == add) {
-             correct++;
+            correct++;
+          } else if(i <1017) {
+           bad = i;
           }
       }
       
       // Print a brief summary detailing the results
       //
       printf("Computed '%d/%d' correct values!\n", correct, count);
-      
+      printf("last bad output %d\n", bad);
+      //x0[1014].mont_repr.print();
+      //x1[1014].mont_repr.print();
+      //printf("host Q\n");
+      //print(mnt4753_Q);
       // Shutdown and cleanup
       //
       clReleaseMemObject(input_x0);
