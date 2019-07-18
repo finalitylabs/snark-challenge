@@ -235,6 +235,48 @@ int768 int768_pow_cached(__global int768 *bases, uint32 exponent) {
   return res;
 }
 
+// Fq2 arithmetics
+//
+typedef struct {
+  int768 c0;
+  int768 c1;
+} Fq2;
+
+#define Fq2_ZERO ((Fq2){mnt4753_ZERO, mnt4753_ZERO})
+#define Fq2_ONE ((Fq2){mnt4753_ONE, FIELD_ZERO})
+
+
+bool Fq2_eq(Fq2 a, Fq2 b) {
+  return int768_eq(a.c0, b.c0) && int768_eq(a.c1, b.c1);
+}
+Fq2 Fq2_neg(Fq2 a) {
+  a.c0 = int768_neg(a.c0);
+  a.c1 = int768_neg(a.c1);
+  return a;
+}
+Fq2 Fq2_sub(Fq2 a, Fq2 b) {
+  a.c0 = int768_sub(a.c0, b.c0);
+  a.c1 = int768_sub(a.c1, b.c1);
+  return a;
+}
+Fq2 Fq2_add(Fq2 a, Fq2 b) {
+  a.c0 = int768_add(a.c0, b.c0);
+  a.c1 = int768_add(a.c1, b.c1);
+  return a;
+}
+Fq2 Fq2_mul(Fq2 a, Fq2 b) {
+  int768 aa = int768_mul(a.c0, b.c0);
+  int768 bb = int768_mul(a.c1, b.c1);
+  int768 o = int768_add(b.c0, b.c1);
+  a.c1 = int768_add(a.c1, a.c0);
+  a.c1 = int768_mul(a.c1, o);
+  a.c1 = int768_sub(a.c1, aa);
+  a.c1 = int768_sub(a.c1, bb);
+  a.c0 = int768_sub(aa, bb);
+  return a;
+}
+
+
 
 
 __kernel void square(
@@ -247,21 +289,16 @@ __kernel void square(
        output[i] = input[i] * input[i];
 }
 
-__kernel void mul_field_quadratic_extension(
-    __global int768* input_x0,
-    __global int768* input_x1,
-    __global int768* output,
+__kernel void mul_fq2(
+    __global Fq2* input_x,
+    __global Fq2* input_y,
+    __global Fq2* output,
     const unsigned int count)
 {
     int i = get_global_id(0);
-    if(i == 1023) {
-      print(input_x0[i]);
-      print(mnt4753_Q);
-    }
-    // printf("%u",i);
-    output[i] = int768_mul(input_x0[i], input_x1[i]);
-    //output[i] = int768_add(input_x0[i], input_x1[i]);
-    //output[i] = int768_sub(input_x0[i], input_x1[i]);
-    //output[i] = int768_neg(input_x1[i]);
+    output[i] = Fq2_mul(input_x[i], input_y[i]);
+    //output[i] = Fq2_add(input_x0[i], input_x1[i]);
+    //output[i] = Fq2_sub(input_x0[i], input_x1[i]);
+    //output[i] = Fq2_neg(input_x1[i]);
     //output[i] = mnt4753_Q;
 }
