@@ -20,33 +20,13 @@ typedef struct {
 
 // Montgomery form of 1 = (1 * R mod P)
 //
-#define mnt4753_ONE ((int768){0x43ed2b00,0x00000000,0x43ec9f00,0x00000000,0x43ecc800,0x00000000,0x43ec3c00,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x98a8ecab,0xd9dc6f42}) // removed 6 left padded bytes
-//
-//#define mnt6753_ONE ((int768){0x43ed2b0000000000,0x43ec9f0000000000,0x43ecc80000000000,0x43ec3c0000000000,0x0000000000000000,0x0000000000000000,0x0000000000000000,0x0000000000000000,0x0000000000000000,0x0000000000000000,0x0000000000000000,0xb99680147fff6f42})
+#define mnt4753_ONE ((int768){{0xd9dc6f42,0x98a8ecab,0x5a034686,0x91cd31c6,0xcd14572e,0x97c3e4a0,0xc788b601,0x79589819,0x2108976f,0xed269c94,0xcf031d68,0x1e0f4d8a,0x13338559,0x320c3bb7,0xd2f00a62,0x598b4302,0xfd8ca621,0x4074c9cb,0x3865e88c,0xfa47edb,0x1ff9a195,0x95455fb3,0x9ec8e242,0x7b47}}) // removed 6 left padded bytes
 
 #define mnt4753_ZERO (0)
-#define mnt6753_ZERO (0)
 
-#define mnt4753_INV_Fr ((ulong)0xc90776e23fffffff)
 #define mnt4753_INV_Fq ((uint)0xe45e7fff)
-#define mnt6753_INV_Fr ((ulong)0xf2044cfbe45e7fff)
-#define mnt6753_INV_Fq ((ulong)0xc90776e23fffffff)
 
-//integer_repr
-//#define mnt4753_Q ((int768){3798144713,1644726289,1209104241,1725357052,3416796615,3623268187,4101813835,3963192318,3700618320,1992740072,2456604845,2077153419,4089149708,47111175,2261968297,3206296621,1718926137,710029764,137940322,318271950,2854819438,2295312200,837751343,32769})
-// signed two's compliment
-//#define mnt4753_Q ((int768){0x01C4C62D,0x92C41110,0x229022EE,0xE2CDADB7,0xF997505B,0x8FAFED5E,0xB7E8F96C,0x97D87307,0xFDB925E8,0xA0ED8D99,0xD124D9A1,0x5AF79DB1,0x17E776F2,0x18059DB8,0x0F0DA5CB,0x537E3868,0x5ACCE976,0x7254A463,0x8810719A,0xC425F0E3,0x9D54522C,0xDD119F5E,0x9063DE24,0x5E80010000})
-
-//#define mnt6753_Q ((int768){0x01C4C62D92C41110,0x229022EEE2CDADB7,0xF997505B8FAFED5E,0xB7E8F96C97D87307,0xFDB925E8A0ED8D99,0xD124D9A15AF79DB2,0x6C5C28C859A99B3E,0xEBCA9429212636B9,0xDFF97634993AA4D6,0xC381BC3F0057974E,0xA099170FA13A4FD9,0x0776E240000001})
-
-//#define mnt4753_Q ((int768){0x1c4c6,0x2d92c411,0x10229022,0xeee2cdad,0xb7f99750,0x5b8fafed,0x5eb7e8f9,0x6c97d873,0x07fdb925,0xe8a0ed8d,0x99d124d9,0xa15af79d,0xb117e776,0xf218059d,0xb80f0da5,0xcb537e38,0x685acce9,0x767254a4,0x63881071,0x9ac425f0,0xe39d5452,0x2cdd119f,0x5e9063de,0x245e8001})
-//#define mnt4753_Q ((int768){0x5e9063de,0x245e8001,0xe39d5452,0x2cdd119f,0x63881071,0x9ac425f0,0x685acce9,0x767254a4,0xb80f0da5,0xcb537e38,0xb117e776,0xf218059d,0x99d124d9,0xa15af79d,0x7fdb925,0xe8a0ed8d,0x5eb7e8f9,0x6c97d873,0xb7f99750,0x5b8fafed,0x10229022,0xeee2cdad,0x1c4c6,0x2d92c411})
-
-#define mnt4753_Q ((int768){0x245e8001,0x5e9063de,0x2cdd119f,0xe39d5452,0x9ac425f0,0x63881071,0x767254a4,0x685acce9,0xcb537e38,0xb80f0da5,0xf218059d,0xb117e776,0xa15af79d,0x99d124d9,0xe8a0ed8d,0x07fdb925,0x6c97d873,0x5eb7e8f9,0x5b8fafed,0xb7f99750,0xeee2cdad,0x10229022,0x2d92c411,0x1c4c6})
-//#define mnt4753_Q ((int768){0x00000001,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000})
-
-//#define mnt4753_R ((int768){0x01C4C62D92C41110,0x229022EEE2CDADB7,0xF997505B8FAFED5E,0xB7E8F96C97D87307,0xFDB925E8A0ED8D99,0xD124D9A15AF79DB2,0x6C5C28C859A99B3E,0xEBCA9429212636B9,0xDFF97634993AA4D6,0xC381BC3F0057974E,0xA099170FA13A4FD9,0x0776E24000000100}) // one extra byte padded 00 
-//#define mnt6753_R ((int768){0x01C4C62D92C41110,0x229022EEE2CDADB7,0xF997505B8FAFED5E,0xB7E8F96C97D87307,0xFDB925E8A0ED8D99,0xD124D9A15AF79DB1,0x17E776F218059DB8,0x0F0DA5CB537E3868,0x5ACCE9767254A463,0x8810719AC425F0E3,0x9D54522CDD119F5E,0x9063DE245E800100})
+#define mnt4753_Q ((int768){{0x245e8001,0x5e9063de,0x2cdd119f,0xe39d5452,0x9ac425f0,0x63881071,0x767254a4,0x685acce9,0xcb537e38,0xb80f0da5,0xf218059d,0xb117e776,0xa15af79d,0x99d124d9,0xe8a0ed8d,0x07fdb925,0x6c97d873,0x5eb7e8f9,0x5b8fafed,0xb7f99750,0xeee2cdad,0x10229022,0x2d92c411,0x1c4c6}})
 
 void print(int768 v) {
   printf("%u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u\n",
@@ -245,38 +225,83 @@ typedef struct {
 #define Fq2_ZERO ((Fq2){mnt4753_ZERO, mnt4753_ZERO})
 #define Fq2_ONE ((Fq2){mnt4753_ONE, FIELD_ZERO})
 
+// Montgomery non_residue
+#define non_residue ((int768){{0xa3162657,0xa4e2d91f,0xb935ff7,0xbc938a1c,0x99bbfb8a,0x8a5a6ad5,0xbe9a4027,0xf06f5292,0x4b7535ff,0xe2c8ca94,0xace06d7a,0x737f39a7,0x158cdead,0xbd2b99bf,0xfc4dbe53,0x74193bb2,0x9a5ce658,0x29c6846f,0xca7dbf57,0xa36dab30,0xd304cb88,0x641e2baf,0x877b312e,0xf450}});
+// Integer non_residue
+//#define non_residue ((int768){{0xD}});
 
 bool Fq2_eq(Fq2 a, Fq2 b) {
-  return int768_eq(a.c0, b.c0) && int768_eq(a.c1, b.c1);
+  return 
+  int768_eq(a.c0, b.c0) && int768_eq(a.c1, b.c1);
 }
+
 Fq2 Fq2_neg(Fq2 a) {
   a.c0 = int768_neg(a.c0);
   a.c1 = int768_neg(a.c1);
   return a;
 }
+
 Fq2 Fq2_sub(Fq2 a, Fq2 b) {
   a.c0 = int768_sub(a.c0, b.c0);
   a.c1 = int768_sub(a.c1, b.c1);
   return a;
 }
+
 Fq2 Fq2_add(Fq2 a, Fq2 b) {
   a.c0 = int768_add(a.c0, b.c0);
   a.c1 = int768_add(a.c1, b.c1);
   return a;
 }
-Fq2 Fq2_mul(Fq2 a, Fq2 b) {
-  int768 aa = int768_mul(a.c0, b.c0);
-  int768 bb = int768_mul(a.c1, b.c1);
-  int768 o = int768_add(b.c0, b.c1);
-  a.c1 = int768_add(a.c1, a.c0);
-  a.c1 = int768_mul(a.c1, o);
-  a.c1 = int768_sub(a.c1, aa);
-  a.c1 = int768_sub(a.c1, bb);
-  a.c0 = int768_sub(aa, bb);
-  return a;
+
+Fq2 Fq2_mul(Fq2 _a, Fq2 _b) {
+  int768 residue = non_residue;
+  //print(residue);
+  int768 A = _b.c0;
+  int768 a = _a.c0;
+  int768 B = _b.c1;
+  int768 b = _a.c1;
+
+  //  const my_Fp
+  //      &A = other.c0, &B = other.c1,
+  //      &a = this->c0, &b = this->c1;
+  //  const my_Fp aA = a * A;
+  //  const my_Fp bB = b * B;
+
+  //int768 aa = int768_mul(a.c0, b.c0);
+  //int768 bb = int768_mul(a.c1, b.c1);
+  int768 aA = int768_mul(a, A);
+  int768 bB = int768_mul(b, B);
+
+  Fq2 res = Fq2_ZERO;
+
+  //res.c0 = int768_add(aa, int768_mul(residue, bb));
+  //res.c0 = int768_add(aA, int768_mul(residue, bB));
+  res.c0 = int768_add(int768_mul(_a.c0, _b.c0), int768_mul(residue, int768_mul(_a.c1, _b.c1)));
+
+  // Sub(Sub(Mul(Add(x.a, x.b), Add(y.a, y.b)), A), B)
+  //return Fp2_model<n,modulus>(aA + non_residue * bB,
+  //                            (a + b)*(A+B) - aA - bB);
+
+  int768 v4 = int768_add(a, b);
+  int768 v3 = int768_add(A, B);
+  int768 v2 = int768_mul(v4, v3);
+  int768 v1 = int768_sub(v2, aA);
+  int768 v0 = int768_sub(v1, bB);
+  
+  //res.c1 = v0;
+  //res.c1 = int768_mul(int768_add(_a.c0, _a.c1), int768_add(_b.c0, _b.c1));
+  //res.c1 = int768_add(_b.c0, _b.c1);
+  return res;
 }
 
+// Qubic arithmetics
+//
 
+// EC arithmetics
+//
+
+// Kernels
+//
 
 
 __kernel void square(
@@ -295,10 +320,14 @@ __kernel void mul_fq2(
     __global Fq2* output,
     const unsigned int count)
 {
+
     int i = get_global_id(0);
-    output[i] = Fq2_mul(input_x[i], input_y[i]);
-    //output[i] = Fq2_add(input_x0[i], input_x1[i]);
-    //output[i] = Fq2_sub(input_x0[i], input_x1[i]);
-    //output[i] = Fq2_neg(input_x1[i]);
-    //output[i] = mnt4753_Q;
+    Fq2 res = Fq2_ZERO;
+    res.c0 = non_residue;
+    //output[i] = res;
+    //output[i] = Fq2_mul(input_x[i], input_y[i]);
+    output[i] = Fq2_add(input_x[i], input_y[i]);
+    //output[i] = Fq2_sub(input_x[i], input_y[i]);
+    //output[i] = Fq2_neg(input_x[i]);
+    //output[i].c0 = mnt4753_Q;
 }

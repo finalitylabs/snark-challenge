@@ -264,8 +264,11 @@ bool Fp_model<n,modulus>::is_zero() const
 template<mp_size_t n, const bigint<n>& modulus>
 void Fp_model<n,modulus>::print() const
 {
+    this->mont_repr.print();
     Fp_model<n,modulus> tmp;
-    tmp.mont_repr.data[0] = 1;
+    tmp.mont_repr.print();
+    tmp.mont_repr.data[0] = 2;
+    tmp.mont_repr.print();
     tmp.mul_reduce(this->mont_repr);
 
     tmp.mont_repr.print();

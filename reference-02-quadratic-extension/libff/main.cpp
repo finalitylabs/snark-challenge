@@ -112,10 +112,12 @@ int main(int argc, char *argv[])
       for (size_t i = 0; i < n; ++i) {
         write_mnt4_q2(outputs, x[i] * y[i]);
       }
-      printf("fq2 c0\n");
-      x[0].c0.mont_repr.print();
-      printf("fq2 c1\n");
-      x[0].c1.mont_repr.print();
+      printf("fq2 x\n");
+      x[1009].print();
+      printf("fq2 y\n");
+      y[1009].print();
+      printf("non-residue\n");
+      x[0].non_residue.mont_repr.print();
 
       // OPENCL START
 
@@ -148,7 +150,7 @@ int main(int argc, char *argv[])
         
       Fqe<mnt4753_pp>* data_x = new Fqe<mnt4753_pp>[n];              // original data set given to device
       Fqe<mnt4753_pp>* data_y = new Fqe<mnt4753_pp>[n];              // original data set given to device
-      Fqe<mnt4753_pp> results[n];           // results returned from device
+      Fqe<mnt4753_pp>* results = new Fqe<mnt4753_pp>[n];           // results returned from device
       unsigned int correct;               // number of correct results returned
 
       size_t global;                      // global domain size for our calculation
@@ -249,7 +251,8 @@ int main(int argc, char *argv[])
       // Build the program executable
       //
       printf("building program\n");
-      err = clBuildProgram(program, num_devices, devices, NULL, NULL, NULL);
+      char options[] = "-cl-opt-disable -cl-unsafe-math-optimizations -cl-mad-enable";
+      err = clBuildProgram(program, num_devices, devices, options, NULL, NULL);
       if (err != CL_SUCCESS)
       {
           size_t len;
@@ -367,20 +370,48 @@ int main(int argc, char *argv[])
       //
       printf("Kernel Result \n");
       //print(results[1014]);
-      results[1013].c0.mont_repr.print();
-      results[1013].c1.mont_repr.print();
+      results[1006].print();
+
+      // for(int i=0; i<12; i++) {
+      //   //printf("%x\n", results[1013].c0.mod.data[i]);
+      //   //std::cout << "Length of array = " << (sizeof(results[1013].non_residue.mont_repr.data)/sizeof(*results[1013].non_residue.mont_repr.data)) << std::endl;
+      //   cl_uint x;
+      //   cl_uint y;
+      //   x = (cl_uint)((results[1013].non_residue.mont_repr.data[i] & 0xFFFFFFFF00000000LL) >> 32);
+      //   y = (cl_uint)(results[1013].non_residue.mont_repr.data[i] & 0xFFFFFFFFLL);
+      //   gmp_printf("%Mx\n", results[1013].non_residue.mont_repr.data[i]);
+      //   printf("%x\n", x);
+      //   printf("%x\n", y);
+      // }
+      Fq<mnt4753_pp> ttt;
+      //ttt.one().mont_repr.print_hex();
+      // for(int i=0; i<12; i++) {
+      //   //printf("%x\n", results[1013].c0.mod.data[i]);
+      //   //std::cout << "Length of array = " << (sizeof(results[1013].non_residue.mont_repr.data)/sizeof(*results[1013].non_residue.mont_repr.data)) << std::endl;
+      //   cl_uint x;
+      //   cl_uint y;
+      //   x = (cl_uint)((results[1013].c0.one().mont_repr.data[i] & 0xFFFFFFFF00000000LL) >> 32);
+      //   y = (cl_uint)(results[1013].c0.one().mont_repr.data[i] & 0xFFFFFFFFLL);
+      //   gmp_printf("%Mx\n", results[1013].c0.one().mont_repr.data[i]);
+      //   printf("%x\n", x);
+      //   printf("%x\n", y);
+      // }
+
       printf("CPU Result\n");
-      Fqe<mnt4753_pp> tt = x[1013] * y[1013];
-      tt.c0.mont_repr.print();
-      tt.c1.mont_repr.print();
+      //x[1011].print();
+      //y[1011].print();
+      //x[1011].c0.mod.print_hex();
+      Fqe<mnt4753_pp> tt = x[1006] + y[1006];
+      tt.print();
       correct = 0;
       int bad = 0;
       for(int i = 0; i < count; i++)
       {
-          Fqe<mnt4753_pp> mul = x[i] * y[i];
+          Fqe<mnt4753_pp> mul = x[i] + y[i];
+          // there is some fuckery on the results fqe struct, cant equality check mont_repr
           if(results[i] == mul) {
             correct++;
-          } else if(i <1017) {
+          } else if(i <1006) {
            bad = i;
           }
       }
@@ -402,7 +433,7 @@ int main(int argc, char *argv[])
       clReleaseContext(context);
 
       // OPENCL END
-      //break;
+      break;
     }
     fclose(outputs);
 

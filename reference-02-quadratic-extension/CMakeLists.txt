@@ -99,13 +99,13 @@ if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   # Common compilation flags and warning configuration
   set(
     CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra -Wfatal-errors"
+    "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra -Wfatal-errors -lOpenCL"
   )
   if("${MULTICORE}")
       if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp -lOpenCL")
       else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -lOpenCL")
       endif()
   endif()
   # Default optimizations flags (to override, use -DOPT_FLAGS=...)
