@@ -113,10 +113,11 @@ int main(int argc, char *argv[])
         write_mnt4_q2(outputs, x[i] * y[i]);
       }
       printf("fq2 x\n");
-      x[1009].print();
+      x[498].print();
       printf("fq2 y\n");
-      y[1009].print();
+      y[498].print();
       printf("non-residue\n");
+      //x[0].c0.mod.print();
       x[0].non_residue.mont_repr.print();
 
       // OPENCL START
@@ -369,8 +370,7 @@ int main(int argc, char *argv[])
       // Validate our results
       //
       printf("Kernel Result \n");
-      //print(results[1014]);
-      results[1006].print();
+      results[1011].c0.mont_repr.print();
 
       // for(int i=0; i<12; i++) {
       //   //printf("%x\n", results[1013].c0.mod.data[i]);
@@ -398,20 +398,17 @@ int main(int argc, char *argv[])
       // }
 
       printf("CPU Result\n");
-      //x[1011].print();
-      //y[1011].print();
-      //x[1011].c0.mod.print_hex();
-      Fqe<mnt4753_pp> tt = x[1006] + y[1006];
+      Fqe<mnt4753_pp> tt = x[1011] * y[1011];
       tt.print();
       correct = 0;
       int bad = 0;
       for(int i = 0; i < count; i++)
       {
-          Fqe<mnt4753_pp> mul = x[i] + y[i];
+          Fqe<mnt4753_pp> mul = x[i] * y[i];
           // there is some fuckery on the results fqe struct, cant equality check mont_repr
-          if(results[i] == mul) {
+          if(results[i].c0 == mul.c0) {
             correct++;
-          } else if(i <1006) {
+          } else if(i < 1000) {
            bad = i;
           }
       }
@@ -433,7 +430,6 @@ int main(int argc, char *argv[])
       clReleaseContext(context);
 
       // OPENCL END
-      break;
     }
     fclose(outputs);
 

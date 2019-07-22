@@ -70,6 +70,7 @@ target_link_libraries(
   ${CRYPTO_LIBRARIES}
   ${PROCPS_LIBRARIES}
   ${FF_EXTRALIBS}
+  ${OPENCL_INCLUDE_DIR}
 )
 
 install(
@@ -107,6 +108,7 @@ target_link_libraries(
   main
 
   ff
+  ${OpenCL_LIBRARY}
 )
 
 add_executable(
@@ -119,6 +121,7 @@ target_link_libraries(
   generate_inputs
 
   ff
+  ${OpenCL_LIBRARY}
 )
 
 # Tests

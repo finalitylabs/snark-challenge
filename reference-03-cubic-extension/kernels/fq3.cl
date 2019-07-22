@@ -298,6 +298,11 @@ Fq2 Fq2_mul(Fq2 _a, Fq2 _b) {
 
 // Qubic arithmetics
 //
+typedef struct {
+  int768 c0;
+  int768 c1;
+} Fq2;
+
 
 // EC arithmetics
 //
@@ -316,7 +321,7 @@ __kernel void square(
        output[i] = input[i] * input[i];
 }
 
-__kernel void mul_fq2(
+__kernel void mul_fq3(
     __global Fq2* input_x,
     __global Fq2* input_y,
     __global Fq2* output,
@@ -333,3 +338,4 @@ __kernel void mul_fq2(
     //output[i] = Fq2_neg(input_x[i]);
     //output[i].c0 = mnt4753_Q;
 }
+

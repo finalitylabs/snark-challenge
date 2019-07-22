@@ -158,26 +158,26 @@ int main(int argc, char *argv[])
         write_mnt6(outputs, y0[i] * y1[i]);
       }
 
-      printf("mnt4753 mod:\n");
-      x0[0].mod.print_hex();
+      printf("mnt6753 mod:\n");
+      y0[0].mod.print_hex();
       for(int i=0; i<11; i++) {
         //printf("%x\n", x0[0].mod.data[i]);
         cl_uint x;
         cl_uint y;
-        x = (cl_uint)((x0[0].mod.data[i] & 0xFFFFFFFF00000000LL) >> 32);
-        y = (cl_uint)(x0[0].mod.data[i] & 0xFFFFFFFFLL);
-        gmp_printf("%Mx\n", x0[0].mod.data[i]);
+        x = (cl_uint)((y0[0].mod.data[i] & 0xFFFFFFFF00000000LL) >> 32);
+        y = (cl_uint)(y0[0].mod.data[i] & 0xFFFFFFFFLL);
+        gmp_printf("%Mx\n", y0[0].mod.data[i]);
         printf("%x\n", x);
         printf("%x\n", y);
       }
       mp_size_t siz = 1;
-      gmp_printf("inverse 64bit: %Nu\n", &x0[0].inv, siz);
+      gmp_printf("inverse 64bit: %Nu\n", &y0[0].inv, siz);
 
       // monty one 
-      printf("mnt4753 ONE:\n");
-      x0[0].one().mont_repr.print();
+      printf("mnt6753 ONE:\n");
+      y0[0].one().mont_repr.print();
 
-      printf("num bits %u\n", x0[123].num_bits);
+      printf("num bits %u\n", y0[123].num_bits);
 
 
       // OPENCL START
@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
       char *source_str;
       size_t source_size, program_size;
 
-      fp = fopen("kernels/mul.cl", "r");
+      fp = fopen("kernels/field.cl", "r");
       if (!fp) {
           fprintf(stderr, "could not open program file\n");
           exit(1);
