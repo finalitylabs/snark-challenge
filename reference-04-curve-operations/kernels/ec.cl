@@ -24,19 +24,17 @@ typedef struct {
 //
 //#define mnt6753_ONE ((int768){0x,0x,0x,0x,0x,0x,0x,0x,0x,0x,0x,0x})
 
-#define mnt4753_ZERO ((int768){0})
-#define mnt6753_ZERO (0)
+#define mnt4753_ZERO ((int768){{0}})
+#define mnt6753_ZERO ((int768){{0}})
 
-#define mnt4753_INV_Fr ((ulong)0xc90776e23fffffff)
-#define mnt4753_INV_Fq ((uint)0xe45e7fff)
-#define mnt6753_INV_Fr ((ulong)0xf2044cfbe45e7fff)
-#define mnt6753_INV_Fq ((ulong)0x3fffffff)
+//#define mnt4753_INV_Fr ((ulong)0xc90776e23fffffff)
+#define mnt4753_INV_Fq ((uint){{0xe45e7fff}})
+//#define mnt6753_INV_Fr ((ulong)0xf2044cfbe45e7fff)
+#define mnt6753_INV_Fq ((uint){{0x3fffffff}})
 
 #define mnt4753_Q ((int768){{0x245e8001,0x5e9063de,0x2cdd119f,0xe39d5452,0x9ac425f0,0x63881071,0x767254a4,0x685acce9,0xcb537e38,0xb80f0da5,0xf218059d,0xb117e776,0xa15af79d,0x99d124d9,0xe8a0ed8d,0x07fdb925,0x6c97d873,0x5eb7e8f9,0x5b8fafed,0xb7f99750,0xeee2cdad,0x10229022,0x2d92c411,0x1c4c6}})
 #define mnt6753_Q ((int768){{0x40000001,0xd90776e2,0xfa13a4f,0x4ea09917,0x3f005797,0xd6c381bc,0x34993aa4,0xb9dff976,0x29212636,0x3eebca94,0xc859a99b,0xb26c5c28,0xa15af79d,0x99d124d9,0xe8a0ed8d,0x7fdb925,0x6c97d873,0x5eb7e8f9,0x5b8fafed,0xb7f99750,0xeee2cdad,0x10229022,0x2d92c411,0x1c4c6}})
 
-//#define mnt4753_R ((int768){0x01C4C62D92C41110,0x229022EEE2CDADB7,0xF997505B8FAFED5E,0xB7E8F96C97D87307,0xFDB925E8A0ED8D99,0xD124D9A15AF79DB2,0x6C5C28C859A99B3E,0xEBCA9429212636B9,0xDFF97634993AA4D6,0xC381BC3F0057974E,0xA099170FA13A4FD9,0x0776E24000000100}) // one extra byte padded 00 
-//#define mnt6753_R ((int768){0x01C4C62D92C41110,0x229022EEE2CDADB7,0xF997505B8FAFED5E,0xB7E8F96C97D87307,0xFDB925E8A0ED8D99,0xD124D9A15AF79DB1,0x17E776F218059DB8,0x0F0DA5CB537E3868,0x5ACCE9767254A463,0x8810719AC425F0E3,0x9D54522CDD119F5E,0x9063DE245E800100})
 
 void print(int768 v) {
   printf("%u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u\n",
@@ -101,13 +99,13 @@ int768 int768_add_(int768 a, int768 b) {
 int768 int768_sub_(int768 a, int768 b) {
   bool borrow = 0;
   for(int i = 0; i < FIELD_LIMBS; i++) {
-    limb2 sub = (limb2)a.v[i] - b.v[i] - borrow;
-    a.v[i] = sub & LIMB_MAX;
-    borrow = (sub >> LIMB_BITS) & 1;
+    //limb2 sub = (limb2)a.v[i] - b.v[i] - borrow;
+    //a.v[i] = sub & LIMB_MAX;
+    //borrow = (sub >> LIMB_BITS) & 1;
     // "still works for sub but removing for consistency"
-    //ulong old = a.v[i];
-    //a.v[i] -= b.v[i] + borrow;
-    //borrow = borrow ? old <= a.v[i] : old < a.v[i];
+    ulong old = a.v[i];
+    a.v[i] -= b.v[i] + borrow;
+    borrow = borrow ? old <= a.v[i] : old < a.v[i];
   }
   return a;
 }
@@ -464,7 +462,7 @@ MNT_G1 G1_add4(MNT_G1 a, MNT_G1 b) {
   // add case
   int768 Z1_Z2 = int768_mul4(a.Z_, b.Z_);
   int768 u = int768_sub4(Y2_Z1, Y1_Z2);
-  //u = int768_sub4(u, mnt4753_ONE); // TODO fix this hack, correcting for off by one error
+  u = int768_sub4(u, mnt4753_ONE); // TODO fix this hack, correcting for off by one error
   
   int768 uu = int768_mul4(u, u);
   uu = int768_add4(uu, mnt4753_ONE); // hack again

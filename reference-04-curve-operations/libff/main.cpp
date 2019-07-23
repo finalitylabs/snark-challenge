@@ -466,7 +466,7 @@ int main(int argc, char *argv[])
       // Build the program executable
       //
       printf("building program\n");
-      char options[] = "-cl-opt-disable -cl-unsafe-math-optimizations -cl-mad-enable";
+      char options[] = "-cl-opt-disable";
       err = clBuildProgram(program, num_devices, devices, options, NULL, NULL);
       if (err != CL_SUCCESS)
       {
