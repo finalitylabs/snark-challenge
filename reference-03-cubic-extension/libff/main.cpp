@@ -396,13 +396,13 @@ int main(int argc, char *argv[])
       // }
 
       printf("CPU Result\n");
-      Fqe<mnt6753_pp> tt = x[1011] + y[1011];
+      Fqe<mnt6753_pp> tt = x[1011] * y[1011];
       tt.print();
       correct = 0;
       int bad = 0;
       for(int i = 0; i < count; i++)
       {
-          Fqe<mnt6753_pp> mul = x[i] + y[i];
+          Fqe<mnt6753_pp> mul = x[i] * y[i];
           // there is some fuckery on the results fqe struct, cant equality check mont_repr
           if(results[i] == mul) {
             correct++;
@@ -428,7 +428,7 @@ int main(int argc, char *argv[])
       clReleaseContext(context);
 
       // OPENCL END
-      break;
+      //break;
     }
     fclose(outputs);
 

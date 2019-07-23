@@ -301,6 +301,7 @@ typedef struct {
 // Integer non_residue
 //#define non_residue ((int768){{0xD}});
 
+
 Fq3 int768_fq3_add(Fq3 x, Fq3 y) {
   Fq3 res = Fq3_ZERO;
   res.c0 = int768_add6(x.c0, y.c0); 
@@ -309,6 +310,29 @@ Fq3 int768_fq3_add(Fq3 x, Fq3 y) {
   return res;
 }
 
+Fq3 int768_fq3_mul(Fq3 a, Fq3 b) {
+  Fq3 res = Fq3_ZERO;
+  int768 residue = non_residue;
+
+  int768 a0_b0 = int768_mul6(a.c0, b.c0);
+  int768 a0_b1 = int768_mul6(a.c0, b.c1); 
+  int768 a0_b2 = int768_mul6(a.c0, b.c2);
+
+  int768 a1_b0 = int768_mul6(a.c1, b.c0);
+  int768 a1_b1 = int768_mul6(a.c1, b.c1); 
+  int768 a1_b2 = int768_mul6(a.c1, b.c2);
+
+  int768 a2_b0 = int768_mul6(a.c2, b.c0);
+  int768 a2_b1 = int768_mul6(a.c2, b.c1); 
+  int768 a2_b2 = int768_mul6(a.c2, b.c2);
+
+  res.c0 = int768_add6(a0_b0, int768_mul6(residue, int768_add6(a1_b2, a2_b1)));
+  res.c1 = int768_add6(a0_b1, int768_add6(a1_b0, int768_mul6(residue, a2_b2)));
+  res.c2 = int768_add6(a0_b2, int768_add6(a1_b1, a2_b0));
+  return res;
+}
+
+
 __kernel void mul_fq3(
     __global Fq3* input_y0,
     __global Fq3* input_y1,
@@ -316,8 +340,8 @@ __kernel void mul_fq3(
     const unsigned int count)
 {
     int i = get_global_id(0);
-    //output_y[i] = int768_fq3_mul(input_y0[i], input_y1[i]);
-    output_y[i] = int768_fq3_add(input_y0[i], input_y1[i]);
+    output_y[i] = int768_fq3_mul(input_y0[i], input_y1[i]);
+    //output_y[i] = int768_fq3_add(input_y0[i], input_y1[i]);
     //output_y[i] = input_y0[i];
 
 }
