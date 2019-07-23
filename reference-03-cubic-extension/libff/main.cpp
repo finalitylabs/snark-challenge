@@ -4,6 +4,21 @@
 #include <libff/algebra/curves/mnt753/mnt6753/mnt6753_pp.hpp>
 #include <libff/algebra/curves/mnt753/mnt6753/mnt6753_init.hpp>
 
+// #define __CL_ENABLE_EXCEPTIONS
+#include <CL/cl.h>
+#define DATA_SIZE (131072)
+#define limbs_per_elem (12)
+#include <chrono> 
+
+using namespace std::chrono; 
+using namespace std;
+
+#include <typeinfo>
+#include <unistd.h>
+#include <string.h>
+#include <errno.h>
+
+char *getcwd(char *buf, size_t size);
 using namespace libff;
 
 Fq<mnt6753_pp> read_mnt6_fq(FILE* input) {
@@ -98,13 +113,10 @@ int main(int argc, char *argv[])
         write_mnt6_q3(outputs, x[i] * y[i]);
       }
 
-      printf("fq2 x\n");
+      printf("fq3 x\n");
       x[498].print();
-      printf("fq2 y\n");
+      printf("fq3 y\n");
       y[498].print();
-      printf("non-residue\n");
-      //x[0].c0.mod.print();
-      x[0].non_residue.mont_repr.print();
 
       // OPENCL START
 
@@ -135,9 +147,9 @@ int main(int argc, char *argv[])
       int err;                            // error code returned from api calls
       char name[128];
         
-      Fqe<mnt4753_pp>* data_x = new Fqe<mnt4753_pp>[n];              // original data set given to device
-      Fqe<mnt4753_pp>* data_y = new Fqe<mnt4753_pp>[n];              // original data set given to device
-      Fqe<mnt4753_pp>* results = new Fqe<mnt4753_pp>[n];           // results returned from device
+      Fqe<mnt6753_pp>* data_x = new Fqe<mnt6753_pp>[n];              // original data set given to device
+      Fqe<mnt6753_pp>* data_y = new Fqe<mnt6753_pp>[n];              // original data set given to device
+      Fqe<mnt6753_pp>* results = new Fqe<mnt6753_pp>[n];           // results returned from device
       unsigned int correct;               // number of correct results returned
 
       size_t global;                      // global domain size for our calculation
@@ -160,12 +172,12 @@ int main(int argc, char *argv[])
       unsigned int count = n;
       mp_size_t num = 1;
       for(int i = 0; i < count; i++) {
-        memcpy(&data_x[i], &x[i], sizeof(Fqe<mnt4753_pp>));
+        memcpy(&data_x[i], &x[i], sizeof(Fqe<mnt6753_pp>));
       }
       printf("count %u\n", n);
 
       for(int i = 0; i < count; i++) {
-        memcpy(&data_y[i], &y[i], sizeof(Fqe<mnt4753_pp>));
+        memcpy(&data_y[i], &y[i], sizeof(Fqe<mnt6753_pp>));
       }
       
       // Connect to a compute device
@@ -253,7 +265,7 @@ int main(int argc, char *argv[])
 
       // Create the compute kernel in the program we wish to run
       //
-      kernel = clCreateKernel(program, "mul_fq2", &err);
+      kernel = clCreateKernel(program, "mul_fq3", &err);
       if (!kernel || err != CL_SUCCESS)
       {
           printf("Error: Failed to create compute kernel!\n");
@@ -263,9 +275,9 @@ int main(int argc, char *argv[])
       // Create the input and output arrays in device memory for our calculation
       //
       printf("creating buffer\n");
-      input_x = clCreateBuffer(context,  CL_MEM_READ_ONLY,  sizeof(Fqe<mnt4753_pp>) * count, NULL, NULL);
-      input_y = clCreateBuffer(context,  CL_MEM_READ_ONLY,  sizeof(Fqe<mnt4753_pp>) * count, NULL, NULL);
-      output = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(Fqe<mnt4753_pp>) * count, NULL, NULL);
+      input_x = clCreateBuffer(context,  CL_MEM_READ_ONLY,  sizeof(Fqe<mnt6753_pp>) * count, NULL, NULL);
+      input_y = clCreateBuffer(context,  CL_MEM_READ_ONLY,  sizeof(Fqe<mnt6753_pp>) * count, NULL, NULL);
+      output = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(Fqe<mnt6753_pp>) * count, NULL, NULL);
 
       if (!input_x || !output)
       {
@@ -276,13 +288,13 @@ int main(int argc, char *argv[])
       // Write our data set into the input array in device memory 
       //
       auto start = high_resolution_clock::now();
-      err = clEnqueueWriteBuffer(commands, input_x, CL_TRUE, 0, sizeof(Fqe<mnt4753_pp>) * count, data_x, 0, NULL, NULL);
+      err = clEnqueueWriteBuffer(commands, input_x, CL_TRUE, 0, sizeof(Fqe<mnt6753_pp>) * count, data_x, 0, NULL, NULL);
       if (err != CL_SUCCESS)
       {
           printf("Error: Failed to write to source array!\n");
           exit(1);
       }
-      err = clEnqueueWriteBuffer(commands, input_y, CL_TRUE, 0, sizeof(Fqe<mnt4753_pp>) * count, data_y, 0, NULL, NULL);
+      err = clEnqueueWriteBuffer(commands, input_y, CL_TRUE, 0, sizeof(Fqe<mnt6753_pp>) * count, data_y, 0, NULL, NULL);
       if (err != CL_SUCCESS)
       {
           printf("Error: Failed to write to source array!\n");
@@ -343,7 +355,7 @@ int main(int argc, char *argv[])
       // Read back the results from the device to verify the output
       //
       start = high_resolution_clock::now();
-      err = clEnqueueReadBuffer( commands, output, CL_TRUE, 0, sizeof(Fqe<mnt4753_pp>) * count, results, 0, NULL, NULL );  
+      err = clEnqueueReadBuffer( commands, output, CL_TRUE, 0, sizeof(Fqe<mnt6753_pp>) * count, results, 0, NULL, NULL );  
       if (err != CL_SUCCESS)
       {
           printf("Error: Failed to read output array! %d\n", err);
@@ -356,10 +368,10 @@ int main(int argc, char *argv[])
       // Validate our results
       //
       printf("Kernel Result \n");
-      results[1011].c0.mont_repr.print();
+      results[1011].print();
 
+      // results[1013].non_residue.mont_repr.print_hex();
       // for(int i=0; i<12; i++) {
-      //   //printf("%x\n", results[1013].c0.mod.data[i]);
       //   //std::cout << "Length of array = " << (sizeof(results[1013].non_residue.mont_repr.data)/sizeof(*results[1013].non_residue.mont_repr.data)) << std::endl;
       //   cl_uint x;
       //   cl_uint y;
@@ -369,7 +381,7 @@ int main(int argc, char *argv[])
       //   printf("%x\n", x);
       //   printf("%x\n", y);
       // }
-      Fq<mnt4753_pp> ttt;
+
       //ttt.one().mont_repr.print_hex();
       // for(int i=0; i<12; i++) {
       //   //printf("%x\n", results[1013].c0.mod.data[i]);
@@ -384,15 +396,15 @@ int main(int argc, char *argv[])
       // }
 
       printf("CPU Result\n");
-      Fqe<mnt4753_pp> tt = x[1011] * y[1011];
+      Fqe<mnt6753_pp> tt = x[1011] + y[1011];
       tt.print();
       correct = 0;
       int bad = 0;
       for(int i = 0; i < count; i++)
       {
-          Fqe<mnt4753_pp> mul = x[i] * y[i];
+          Fqe<mnt6753_pp> mul = x[i] + y[i];
           // there is some fuckery on the results fqe struct, cant equality check mont_repr
-          if(results[i].c0 == mul.c0) {
+          if(results[i] == mul) {
             correct++;
           } else if(i < 1000) {
            bad = i;
@@ -401,7 +413,7 @@ int main(int argc, char *argv[])
       
       // Print a brief summary detailing the results
       //
-      printf("Computed '%d/%d' correct mnt4753 values!\n", correct, count);
+      printf("Computed '%d/%d' correct fq3 values!\n", correct, count);
       printf("last bad output %d\n", bad);
       //x0[1014].mont_repr.print();
       //x1[1014].mont_repr.print();
