@@ -20,11 +20,11 @@ typedef struct {
 
 // Montgomery form of 1 = (1 * R mod P)
 //
-#define mnt4753_ONE ((int768){0x43ed2b00,0x00000000,0x43ec9f00,0x00000000,0x43ecc800,0x00000000,0x43ec3c00,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x98a8ecab,0xd9dc6f42}) // removed 6 left padded bytes
+#define mnt4753_ONE ((int768){0xd9dc6f42,0x98a8ecab,0x5a034686,0x91cd31c6,0xcd14572e,0x97c3e4a0,0xc788b601,0x79589819,0x2108976f,0xed269c94,0xcf031d68,0x1e0f4d8a,0x13338559,0x320c3bb7,0xd2f00a62,0x598b4302,0xfd8ca621,0x4074c9cb,0x3865e88c,0xfa47edb,0x1ff9a195,0x95455fb3,0x9ec8e242,0x7b47})
 //
-#define mnt6753_ONE ((int768){0x43ed2b0000000000,0x43ec9f0000000000,0x43ecc80000000000,0x43ec3c0000000000,0x0000000000000000,0x0000000000000000,0x0000000000000000,0x0000000000000000,0x0000000000000000,0x0000000000000000,0x0000000000000000,0xb99680147fff6f42})
+//#define mnt6753_ONE ((int768){0x,0x,0x,0x,0x,0x,0x,0x,0x,0x,0x,0x})
 
-#define mnt4753_ZERO (0)
+#define mnt4753_ZERO ((int768){0})
 #define mnt6753_ZERO (0)
 
 #define mnt4753_INV_Fr ((ulong)0xc90776e23fffffff)
@@ -285,7 +285,7 @@ int768 int768_pow_cached(__global int768 *bases, uint32 exponent) {
 }
 
 
-// Fq2 arithmetics
+// Fq2 MNT4753 arithmetics
 //
 typedef struct {
   int768 c0;
@@ -306,20 +306,20 @@ bool Fq2_eq(Fq2 a, Fq2 b) {
 }
 
 Fq2 Fq2_neg(Fq2 a) {
-  a.c0 = int768_neg(a.c0);
-  a.c1 = int768_neg(a.c1);
+  a.c0 = int768_neg4(a.c0);
+  a.c1 = int768_neg4(a.c1);
   return a;
 }
 
 Fq2 Fq2_sub(Fq2 a, Fq2 b) {
-  a.c0 = int768_sub(a.c0, b.c0);
-  a.c1 = int768_sub(a.c1, b.c1);
+  a.c0 = int768_sub4(a.c0, b.c0);
+  a.c1 = int768_sub4(a.c1, b.c1);
   return a;
 }
 
 Fq2 Fq2_add(Fq2 a, Fq2 b) {
-  a.c0 = int768_add(a.c0, b.c0);
-  a.c1 = int768_add(a.c1, b.c1);
+  a.c0 = int768_add4(a.c0, b.c0);
+  a.c1 = int768_add4(a.c1, b.c1);
   return a;
 }
 
@@ -338,31 +338,31 @@ Fq2 Fq2_mul(Fq2 _a, Fq2 _b) {
   //  const my_Fp bB = b * B;
 
 
-  int768 aA = int768_mul(a, A);
-  int768 bB = int768_mul(b, B);
+  int768 aA = int768_mul4(a, A);
+  int768 bB = int768_mul4(b, B);
 
   Fq2 res = Fq2_ZERO;
 
-  //res.c0 = int768_add(aa, int768_mul(residue, bb));
-  //res.c0 = int768_add(aA, int768_mul(residue, bB));
-  res.c0 = int768_add(int768_mul(_a.c0, _b.c0), int768_mul(residue, int768_mul(_a.c1, _b.c1)));
+  //res.c0 = int768_add4(aa, int768_mul4(residue, bb));
+  //res.c0 = int768_add4(aA, int768_mul4(residue, bB));
+  res.c0 = int768_add4(int768_mul4(_a.c0, _b.c0), int768_mul4(residue, int768_mul4(_a.c1, _b.c1)));
   
   
   // Sub(Sub(Mul(Add(x.a, x.b), Add(y.a, y.b)), A), B)
   //return Fp2_model<n,modulus>(aA + non_residue * bB,
   //                            (a + b)*(A+B) - aA - bB);
 
-  int768 v4 = int768_add(a, b);
-  int768 v3 = int768_add(A, B);
-  int768 v2 = int768_mul(v4, v3);
-  int768 v1 = int768_sub(v2, aA);
-  int768 v0 = int768_sub(v1, bB);
+  //int768 v4 = int768_add4(a, b);
+  //int768 v3 = int768_add4(A, B);
+  //int768 v2 = int768_mul4(v4, v3);
+  //int768 v1 = int768_sub4(v2, aA);
+  //int768 v0 = int768_sub4(v1, bB);
   
   //res.c1 = v0;
-  res.c1 = int768_mul(int768_add(_a.c0, _a.c1), int768_add(_b.c0, _b.c1));
-  res.c1 = int768_sub(res.c1, aA);
-  res.c1 = int768_sub(res.c1, bB);
-  //res.c1 = int768_sub(res.c1, int768_mul(a, A));
+  res.c1 = int768_mul4(int768_add4(_a.c0, _a.c1), int768_add4(_b.c0, _b.c1));
+  res.c1 = int768_sub4(res.c1, aA);
+  res.c1 = int768_sub4(res.c1, bB);
+  //res.c1 = int768_sub4(res.c1, int768_mul4(a, A));
   return res;
 }
 
@@ -419,15 +419,48 @@ Fq3 int768_fq3_mul(Fq3 a, Fq3 b) {
 //
 
 typedef struct {
-  int768 x;
-  int768 y;
-  int768 z;
+  int768 X_;
+  int768 Y_;
+  int768 Z_;
 } MNT_G1;
 
+// affine coord zero
+#define G1_ZERO ((MNT_G1){mnt4753_ZERO, mnt4753_ONE, mnt4753_ZERO})
 
+bool is_zero(MNT_G1 a) {
+  if(!int768_eq(a.X_, mnt4753_ZERO)) return false;
+  // if(int768_eq(a.Y_, mnt4753_ONE)) return false;
+  if(!int768_eq(a.Z_, mnt4753_ZERO)) return false; 
+  return true;
+}
+
+// dont think we need this
+bool G1_eq(MNT_G1 a, MNT_G1 b) {
+    if(!int768_eq(a.X_, b.X_)) return false;
+    if(!int768_eq(a.X_, b.X_)) return false;
+    if(!int768_eq(a.X_, b.X_)) return false;
+    return true;
+}
 
 MNT_G1 G1_add4(MNT_G1 a, MNT_G1 b) {
-  
+  if(is_zero(a)) return b;
+  if(is_zero(b)) return a;
+
+  int768 X1_Z2 = int768_mul4(a.X_, b.Z_);
+  int768 X2_Z1 = int768_mul4(a.Z_, b.X_);
+
+  int768 Y1_Z2 = int768_mul4(a.Y_, b.Z_);
+  int768 Y2_Z1 = int768_mul4(a.Z_, b.Y_);
+
+  if(int768_eq(X1_Z2, X2_Z1) && int768_eq(Y1_Z2, Y2_Z1)) {
+
+  }
+
+  MNT_G1 res = G1_ZERO;
+  res.X_ = X1_Z2;
+  res.Y_ = mnt4753_ONE;
+  res.Z_ = mnt4753_ONE;
+  return res;
 }
 
 MNT_G1 G1_mixed_add4(MNT_G1 a, MNT_G1 b) {
@@ -452,5 +485,7 @@ __kernel void add_G1(
     int i = get_global_id(0);
     //output_y[i] = int768_fq3_mul(input_y0[i], input_y1[i]);
     //output_y[i] = int768_fq3_add(input_y0[i], input_y1[i]);
-    output_h1 = input_g1[1];
+    //output_h1[0].X_ = input_g1[1].X_;
+    output_h1[0] = G1_add4(input_h1[0], input_g1[1]);
+    output_h1[0] = G1_add4(output_h1[0], input_g1[2]);
 }

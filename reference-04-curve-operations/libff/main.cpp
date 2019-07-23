@@ -362,9 +362,9 @@ int main(int argc, char *argv[])
       int err;                            // error code returned from api calls
       char name[128];
         
-      G1<mnt4753_pp> data_x;              // original data set given to device
+      G1<mnt4753_pp>* data_x = new G1<mnt4753_pp>[1];              // original data set given to device
       G1<mnt4753_pp>* data_y = new G1<mnt4753_pp>[n];              // original data set given to device
-      G1<mnt4753_pp> results;           // results returned from device
+      G1<mnt4753_pp>* results = new G1<mnt4753_pp>[1];           // results returned from device
       unsigned int correct;               // number of correct results returned
 
       size_t global;                      // global domain size for our calculation
@@ -387,9 +387,10 @@ int main(int argc, char *argv[])
       unsigned int count = n;
       mp_size_t num = 1;
 
-      memcpy(&data_x, &h4_1, sizeof(G1<mnt4753_pp>));
-
+      //memcpy(&data_x[0], &h4_1, sizeof(G1<mnt4753_pp>));
+      data_x[0] = G1<mnt4753_pp>::zero();
       printf("count %u\n", n);
+      data_x[0].print_coordinates();
 
       for(int i = 0; i < count; i++) {
         memcpy(&data_y[i], &g4_1[i], sizeof(G1<mnt4753_pp>));
@@ -503,7 +504,7 @@ int main(int argc, char *argv[])
       // Write our data set into the input array in device memory 
       //
       auto start = high_resolution_clock::now();
-      err = clEnqueueWriteBuffer(commands, input_x, CL_TRUE, 0, sizeof(G1<mnt4753_pp>), &data_x, 0, NULL, NULL);
+      err = clEnqueueWriteBuffer(commands, input_x, CL_TRUE, 0, sizeof(G1<mnt4753_pp>), data_x, 0, NULL, NULL);
       if (err != CL_SUCCESS)
       {
           printf("Error: Failed to write to source array!\n");
@@ -547,7 +548,8 @@ int main(int argc, char *argv[])
       // Execute the kernel over the entire range of our 1d input data set
       // using the maximum number of work group items for this device
       //
-      global = count;
+      //global = count;
+      global = 1;
       printf("queueing kernel\n");
       err = clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local, 0, NULL, &event);
       if (err)
@@ -570,7 +572,7 @@ int main(int argc, char *argv[])
       // Read back the results from the device to verify the output
       //
       start = high_resolution_clock::now();
-      err = clEnqueueReadBuffer( commands, output, CL_TRUE, 0, sizeof(G1<mnt4753_pp>), &results, 0, NULL, NULL );  
+      err = clEnqueueReadBuffer( commands, output, CL_TRUE, 0, sizeof(G1<mnt4753_pp>), results, 0, NULL, NULL );  
       if (err != CL_SUCCESS)
       {
           printf("Error: Failed to read output array! %d\n", err);
@@ -583,21 +585,22 @@ int main(int argc, char *argv[])
       // Validate our results
       //
       printf("Kernel Result \n");
-      results.print();
+      results[0].X().print();
 
-      // results[1013].non_residue.mont_repr.print_hex();
-      // for(int i=0; i<12; i++) {
-      //   //std::cout << "Length of array = " << (sizeof(results[1013].non_residue.mont_repr.data)/sizeof(*results[1013].non_residue.mont_repr.data)) << std::endl;
-      //   cl_uint x;
-      //   cl_uint y;
-      //   x = (cl_uint)((results[1013].non_residue.mont_repr.data[i] & 0xFFFFFFFF00000000LL) >> 32);
-      //   y = (cl_uint)(results[1013].non_residue.mont_repr.data[i] & 0xFFFFFFFFLL);
-      //   gmp_printf("%Mx\n", results[1013].non_residue.mont_repr.data[i]);
-      //   printf("%x\n", x);
-      //   printf("%x\n", y);
-      // }
+      results[0].X().one().mont_repr.print_hex();
+      for(int i=0; i<12; i++) {
+        //std::cout << "Length of array = " << (sizeof(results[1013].non_residue.mont_repr.data)/sizeof(*results[1013].non_residue.mont_repr.data)) << std::endl;
+        cl_uint x;
+        cl_uint y;
+        x = (cl_uint)((results[0].X().one().mont_repr.data[i] & 0xFFFFFFFF00000000LL) >> 32);
+        y = (cl_uint)(results[0].X().one().mont_repr.data[i] & 0xFFFFFFFFLL);
+        gmp_printf("%Mx\n", results[0].X().one().mont_repr.data[i]);
+        printf("%x\n", x);
+        printf("%x\n", y);
+      }
 
-      //ttt.one().mont_repr.print_hex();
+      results[0].zero().print_coordinates();
+
       // for(int i=0; i<12; i++) {
       //   //printf("%x\n", results[1013].c0.mod.data[i]);
       //   //std::cout << "Length of array = " << (sizeof(results[1013].non_residue.mont_repr.data)/sizeof(*results[1013].non_residue.mont_repr.data)) << std::endl;
@@ -614,13 +617,17 @@ int main(int argc, char *argv[])
       G1<mnt4753_pp> _h4_1 = G1<mnt4753_pp>::zero();
       printf("g1_h4 zero x\n");
 
-      for (size_t i = 0; i < n; ++i) { _h4_1 = _h4_1 + g4_1[i]; }
-
-      _h4_1.print();
+      //for (size_t i = 0; i < n; ++i) { _h4_1 = _h4_1 + g4_1[i]; }
+      _h4_1.X().print();
+      _h4_1 = _h4_1 + g4_1[1];
+      _h4_1.X().print();
+      _h4_1 = _h4_1 + g4_1[2];
+      _h4_1.X().print();
+      //  g4_1[1].X().print();
       correct = 0;
 
       // there is some fuckery on the results fqe struct, cant equality check mont_repr
-      if(results == _h4_1) {
+      if(results[0] == _h4_1) {
         correct++;
       }
 
