@@ -587,17 +587,17 @@ int main(int argc, char *argv[])
       printf("Kernel Result \n");
       results[0].X().print();
 
-      results[0].X().one().mont_repr.print_hex();
-      for(int i=0; i<12; i++) {
-        //std::cout << "Length of array = " << (sizeof(results[1013].non_residue.mont_repr.data)/sizeof(*results[1013].non_residue.mont_repr.data)) << std::endl;
-        cl_uint x;
-        cl_uint y;
-        x = (cl_uint)((results[0].X().one().mont_repr.data[i] & 0xFFFFFFFF00000000LL) >> 32);
-        y = (cl_uint)(results[0].X().one().mont_repr.data[i] & 0xFFFFFFFFLL);
-        gmp_printf("%Mx\n", results[0].X().one().mont_repr.data[i]);
-        printf("%x\n", x);
-        printf("%x\n", y);
-      }
+      // results[0].X().one().mont_repr.print_hex();
+      // for(int i=0; i<12; i++) {
+      //   //std::cout << "Length of array = " << (sizeof(results[1013].non_residue.mont_repr.data)/sizeof(*results[1013].non_residue.mont_repr.data)) << std::endl;
+      //   cl_uint x;
+      //   cl_uint y;
+      //   x = (cl_uint)((results[0].X().one().mont_repr.data[i] & 0xFFFFFFFF00000000LL) >> 32);
+      //   y = (cl_uint)(results[0].X().one().mont_repr.data[i] & 0xFFFFFFFFLL);
+      //   gmp_printf("%Mx\n", results[0].X().one().mont_repr.data[i]);
+      //   printf("%x\n", x);
+      //   printf("%x\n", y);
+      // }
 
       results[0].zero().print_coordinates();
 
@@ -615,13 +615,15 @@ int main(int argc, char *argv[])
 
       printf("CPU Result\n");
       G1<mnt4753_pp> _h4_1 = G1<mnt4753_pp>::zero();
-      printf("g1_h4 zero x\n");
 
       //for (size_t i = 0; i < n; ++i) { _h4_1 = _h4_1 + g4_1[i]; }
-      _h4_1.X().print();
+      //_h4_1.X().print();
+      _h4_1 = _h4_1 + g4_1[0];
+      //_h4_1.X().print();
       _h4_1 = _h4_1 + g4_1[1];
-      _h4_1.X().print();
       _h4_1 = _h4_1 + g4_1[2];
+      _h4_1 = _h4_1 + g4_1[3];
+      _h4_1 = _h4_1 + g4_1[4];
       _h4_1.X().print();
       //  g4_1[1].X().print();
       correct = 0;

@@ -20,7 +20,7 @@ typedef struct {
 
 // Montgomery form of 1 = (1 * R mod P)
 //
-#define mnt4753_ONE ((int768){0xd9dc6f42,0x98a8ecab,0x5a034686,0x91cd31c6,0xcd14572e,0x97c3e4a0,0xc788b601,0x79589819,0x2108976f,0xed269c94,0xcf031d68,0x1e0f4d8a,0x13338559,0x320c3bb7,0xd2f00a62,0x598b4302,0xfd8ca621,0x4074c9cb,0x3865e88c,0xfa47edb,0x1ff9a195,0x95455fb3,0x9ec8e242,0x7b47})
+#define mnt4753_ONE ((int768){{0xd9dc6f42,0x98a8ecab,0x5a034686,0x91cd31c6,0xcd14572e,0x97c3e4a0,0xc788b601,0x79589819,0x2108976f,0xed269c94,0xcf031d68,0x1e0f4d8a,0x13338559,0x320c3bb7,0xd2f00a62,0x598b4302,0xfd8ca621,0x4074c9cb,0x3865e88c,0xfa47edb,0x1ff9a195,0x95455fb3,0x9ec8e242,0x7b47}})
 //
 //#define mnt6753_ONE ((int768){0x,0x,0x,0x,0x,0x,0x,0x,0x,0x,0x,0x})
 
@@ -32,8 +32,8 @@ typedef struct {
 #define mnt6753_INV_Fr ((ulong)0xf2044cfbe45e7fff)
 #define mnt6753_INV_Fq ((ulong)0x3fffffff)
 
-#define mnt4753_Q ((int768){0x245e8001,0x5e9063de,0x2cdd119f,0xe39d5452,0x9ac425f0,0x63881071,0x767254a4,0x685acce9,0xcb537e38,0xb80f0da5,0xf218059d,0xb117e776,0xa15af79d,0x99d124d9,0xe8a0ed8d,0x07fdb925,0x6c97d873,0x5eb7e8f9,0x5b8fafed,0xb7f99750,0xeee2cdad,0x10229022,0x2d92c411,0x1c4c6})
-#define mnt6753_Q ((int768){0x40000001,0xd90776e2,0xfa13a4f,0x4ea09917,0x3f005797,0xd6c381bc,0x34993aa4,0xb9dff976,0x29212636,0x3eebca94,0xc859a99b,0xb26c5c28,0xa15af79d,0x99d124d9,0xe8a0ed8d,0x7fdb925,0x6c97d873,0x5eb7e8f9,0x5b8fafed,0xb7f99750,0xeee2cdad,0x10229022,0x2d92c411,0x1c4c6})
+#define mnt4753_Q ((int768){{0x245e8001,0x5e9063de,0x2cdd119f,0xe39d5452,0x9ac425f0,0x63881071,0x767254a4,0x685acce9,0xcb537e38,0xb80f0da5,0xf218059d,0xb117e776,0xa15af79d,0x99d124d9,0xe8a0ed8d,0x07fdb925,0x6c97d873,0x5eb7e8f9,0x5b8fafed,0xb7f99750,0xeee2cdad,0x10229022,0x2d92c411,0x1c4c6}})
+#define mnt6753_Q ((int768){{0x40000001,0xd90776e2,0xfa13a4f,0x4ea09917,0x3f005797,0xd6c381bc,0x34993aa4,0xb9dff976,0x29212636,0x3eebca94,0xc859a99b,0xb26c5c28,0xa15af79d,0x99d124d9,0xe8a0ed8d,0x7fdb925,0x6c97d873,0x5eb7e8f9,0x5b8fafed,0xb7f99750,0xeee2cdad,0x10229022,0x2d92c411,0x1c4c6}})
 
 //#define mnt4753_R ((int768){0x01C4C62D92C41110,0x229022EEE2CDADB7,0xF997505B8FAFED5E,0xB7E8F96C97D87307,0xFDB925E8A0ED8D99,0xD124D9A15AF79DB2,0x6C5C28C859A99B3E,0xEBCA9429212636B9,0xDFF97634993AA4D6,0xC381BC3F0057974E,0xA099170FA13A4FD9,0x0776E24000000100}) // one extra byte padded 00 
 //#define mnt6753_R ((int768){0x01C4C62D92C41110,0x229022EEE2CDADB7,0xF997505B8FAFED5E,0xB7E8F96C97D87307,0xFDB925E8A0ED8D99,0xD124D9A15AF79DB1,0x17E776F218059DB8,0x0F0DA5CB537E3868,0x5ACCE9767254A463,0x8810719AC425F0E3,0x9D54522CDD119F5E,0x9063DE245E800100})
@@ -436,15 +436,17 @@ bool is_zero(MNT_G1 a) {
 
 // dont think we need this
 bool G1_eq(MNT_G1 a, MNT_G1 b) {
-    if(!int768_eq(a.X_, b.X_)) return false;
-    if(!int768_eq(a.X_, b.X_)) return false;
-    if(!int768_eq(a.X_, b.X_)) return false;
-    return true;
+  if(!int768_eq(a.X_, b.X_)) return false;
+  if(!int768_eq(a.X_, b.X_)) return false;
+  if(!int768_eq(a.X_, b.X_)) return false;
+  return true;
 }
 
 MNT_G1 G1_add4(MNT_G1 a, MNT_G1 b) {
   if(is_zero(a)) return b;
   if(is_zero(b)) return a;
+
+  MNT_G1 res = G1_ZERO;
 
   int768 X1_Z2 = int768_mul4(a.X_, b.Z_);
   int768 X2_Z1 = int768_mul4(a.Z_, b.X_);
@@ -452,12 +454,29 @@ MNT_G1 G1_add4(MNT_G1 a, MNT_G1 b) {
   int768 Y1_Z2 = int768_mul4(a.Y_, b.Z_);
   int768 Y2_Z1 = int768_mul4(a.Z_, b.Y_);
 
+  // double case 
   if(int768_eq(X1_Z2, X2_Z1) && int768_eq(Y1_Z2, Y2_Z1)) {
-
+    int768 XX = int768_mul4(a.X_, a.X_); // todo special case squaring
+    res.X_ = XX;
+    return res;
   }
 
-  MNT_G1 res = G1_ZERO;
-  res.X_ = X1_Z2;
+  // add case
+  int768 Z1_Z2 = int768_mul4(a.Z_, b.Z_);
+  int768 u = int768_sub4(Y2_Z1, Y1_Z2);
+  //u = int768_sub4(u, mnt4753_ONE); // TODO fix this hack, correcting for off by one error
+  
+  int768 uu = int768_mul4(u, u);
+  uu = int768_add4(uu, mnt4753_ONE); // hack again
+  uu = int768_sub4(uu, mnt4753_ONE); // hack again
+
+  int768 v = int768_sub4(X2_Z1, X1_Z2);
+  v = int768_add4(v, mnt4753_ONE); // hack again
+  v = int768_add4(v, mnt4753_ONE); // hack again
+
+  int768 vv = int768_mul4(v,v);
+
+  res.X_ = u;
   res.Y_ = mnt4753_ONE;
   res.Z_ = mnt4753_ONE;
   return res;
@@ -482,10 +501,16 @@ __kernel void add_G1(
     __global MNT_G1* output_h1,
     const unsigned int count)
 {
-    int i = get_global_id(0);
-    //output_y[i] = int768_fq3_mul(input_y0[i], input_y1[i]);
-    //output_y[i] = int768_fq3_add(input_y0[i], input_y1[i]);
-    //output_h1[0].X_ = input_g1[1].X_;
-    output_h1[0] = G1_add4(input_h1[0], input_g1[1]);
-    output_h1[0] = G1_add4(output_h1[0], input_g1[2]);
+  int i = get_global_id(0);
+  //output_y[i] = int768_fq3_mul(input_y0[i], input_y1[i]);
+  //output_y[i] = int768_fq3_add(input_y0[i], input_y1[i]);
+  //output_h1[0].X_ = input_g1[1].X_;
+  output_h1[0] = G1_add4(input_h1[0], input_g1[0]);
+  //for(int j=0; j < count; j++) {
+  //  output_h1[0] = G1_add4(output_h1[0], input_g1[j]);
+  //}
+  output_h1[0] = G1_add4(output_h1[0], input_g1[1]);
+  output_h1[0] = G1_add4(output_h1[0], input_g1[2]);
+  output_h1[0] = G1_add4(output_h1[0], input_g1[3]);
+  output_h1[0] = G1_add4(output_h1[0], input_g1[4]);
 }
