@@ -159,8 +159,8 @@ int main(int argc, char *argv[])
       }
 
       printf("mnt6753 mod:\n");
-      y0[0].mod.print_hex();
-      for(int i=0; i<11; i++) {
+      y0[0].mod.print();
+      for(int i=0; i<12; i++) {
         //printf("%x\n", x0[0].mod.data[i]);
         cl_uint x;
         cl_uint y;
@@ -211,9 +211,10 @@ int main(int argc, char *argv[])
         
       Fq<mnt4753_pp>* data_x0 = new Fq<mnt4753_pp>[n];              // original data set given to device
       Fq<mnt4753_pp>* data_x1 = new Fq<mnt4753_pp>[n];              // original data set given to device
-      Fq<mnt4753_pp>* data_y0 = new Fq<mnt4753_pp>[n];              // original data set given to device
-      Fq<mnt4753_pp>* data_y1 = new Fq<mnt4753_pp>[n];              // original data set given to device
+      Fq<mnt6753_pp>* data_y0 = new Fq<mnt6753_pp>[n];              // original data set given to device
+      Fq<mnt6753_pp>* data_y1 = new Fq<mnt6753_pp>[n];              // original data set given to device
       Fq<mnt4753_pp> results[n];           // results returned from device
+      Fq<mnt6753_pp> results_6753[n];           // results returned from device
       unsigned int correct;               // number of correct results returned
 
       size_t global;                      // global domain size for our calculation
@@ -230,6 +231,8 @@ int main(int argc, char *argv[])
       
       cl_mem input_x0;                       // device memory used for the input array
       cl_mem input_x1;                       // device memory used for the input array
+      cl_mem input_y0;                       // device memory used for the input array
+      cl_mem input_y1;                       // device memory used for the input array  
       cl_mem output_x;                       // device memory used for the input array
       cl_mem output_y;                      // device memory used for the output array
 
@@ -246,6 +249,18 @@ int main(int argc, char *argv[])
 
       for(int i = 0; i < count; i++) {
         memcpy(&data_x1[i], &x1[i].mont_repr.data, sizeof(int768));
+      }
+      
+      // fill mnt6753
+      for(int i = 0; i < count; i++) {
+        memcpy(&data_y0[i], &y0[i].mont_repr.data, sizeof(int768));
+      }
+      printf("count %u\n", n);
+
+      data_y0[0].mont_repr.print();
+
+      for(int i = 0; i < count; i++) {
+        memcpy(&data_y1[i], &y1[i].mont_repr.data, sizeof(int768));
       }
       
       // Connect to a compute device
@@ -332,7 +347,7 @@ int main(int argc, char *argv[])
 
       // Create the compute kernel in the program we wish to run
       //
-      kernel = clCreateKernel(program, "mul_field", &err);
+      kernel = clCreateKernel(program, "mul_mnt", &err);
       if (!kernel || err != CL_SUCCESS)
       {
           printf("Error: Failed to create compute kernel!\n");
@@ -345,6 +360,10 @@ int main(int argc, char *argv[])
       input_x0 = clCreateBuffer(context,  CL_MEM_READ_ONLY,  sizeof(int768) * count, NULL, NULL);
       input_x1 = clCreateBuffer(context,  CL_MEM_READ_ONLY,  sizeof(int768) * count, NULL, NULL);
       output_x = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(int768) * count, NULL, NULL);
+
+      input_y0 = clCreateBuffer(context,  CL_MEM_READ_ONLY,  sizeof(int768) * count, NULL, NULL);
+      input_y1 = clCreateBuffer(context,  CL_MEM_READ_ONLY,  sizeof(int768) * count, NULL, NULL);
+      output_y = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(int768) * count, NULL, NULL);
 
       if (!input_x0 || !output_x)
       {
@@ -367,6 +386,19 @@ int main(int argc, char *argv[])
           printf("Error: Failed to write to source array!\n");
           exit(1);
       }
+
+      err = clEnqueueWriteBuffer(commands, input_y0, CL_TRUE, 0, sizeof(int768) * count, data_y0, 0, NULL, NULL);
+      if (err != CL_SUCCESS)
+      {
+          printf("Error: Failed to write to source array!\n");
+          exit(1);
+      }
+      err = clEnqueueWriteBuffer(commands, input_y1, CL_TRUE, 0, sizeof(int768) * count, data_y1, 0, NULL, NULL);
+      if (err != CL_SUCCESS)
+      {
+          printf("Error: Failed to write to source array!\n");
+          exit(1);
+      }
       stop = high_resolution_clock::now();
       duration = duration_cast<microseconds>(stop - start); 
       cout << "Time taken by GPU write function: "
@@ -378,7 +410,10 @@ int main(int argc, char *argv[])
       err  = clSetKernelArg(kernel, 0, sizeof(cl_mem), &input_x0);
       err  = clSetKernelArg(kernel, 1, sizeof(cl_mem), &input_x1);
       err |= clSetKernelArg(kernel, 2, sizeof(cl_mem), &output_x);
-      err |= clSetKernelArg(kernel, 3, sizeof(unsigned int), &count);
+      err  = clSetKernelArg(kernel, 3, sizeof(cl_mem), &input_y0);
+      err  = clSetKernelArg(kernel, 4, sizeof(cl_mem), &input_y1);
+      err |= clSetKernelArg(kernel, 5, sizeof(cl_mem), &output_y);
+      err |= clSetKernelArg(kernel, 6, sizeof(unsigned int), &count);
       if (err != CL_SUCCESS)
       {
           printf("Error: Failed to set kernel arguments! %d\n", err);
@@ -428,6 +463,13 @@ int main(int argc, char *argv[])
           printf("Error: Failed to read output array! %d\n", err);
           exit(1);
       }
+
+      err = clEnqueueReadBuffer( commands, output_y, CL_TRUE, 0, sizeof(int768) * count, results_6753, 0, NULL, NULL );  
+      if (err != CL_SUCCESS)
+      {
+          printf("Error: Failed to read output array! %d\n", err);
+          exit(1);
+      }
       stop = high_resolution_clock::now();
       duration = duration_cast<microseconds>(stop - start); 
       cout << "Time taken by GPU read function: "
@@ -445,7 +487,8 @@ int main(int argc, char *argv[])
       for(int i = 0; i < count; i++)
       {
           Fq<mnt4753_pp> mul = x0[i] * x1[i];
-          if(results[i] == mul) {
+          Fq<mnt6753_pp> mul2 = y0[i] * y1[i];
+          if(results[i] == mul && results_6753[i] == mul2) {
             correct++;
           } else if(i <1017) {
            bad = i;
@@ -463,13 +506,16 @@ int main(int argc, char *argv[])
       clReleaseMemObject(input_x0);
       clReleaseMemObject(input_x1);
       clReleaseMemObject(output_x);
+      clReleaseMemObject(input_y0);
+      clReleaseMemObject(input_y1);
+      clReleaseMemObject(output_y);
       clReleaseProgram(program);
       clReleaseKernel(kernel);
       clReleaseCommandQueue(commands);
       clReleaseContext(context);
 
       // OPENCL END
-      //break;
+      break;
     }
 
     fclose(outputs);

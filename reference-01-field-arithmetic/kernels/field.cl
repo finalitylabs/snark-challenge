@@ -30,20 +30,10 @@ typedef struct {
 #define mnt4753_INV_Fr ((ulong)0xc90776e23fffffff)
 #define mnt4753_INV_Fq ((uint)0xe45e7fff)
 #define mnt6753_INV_Fr ((ulong)0xf2044cfbe45e7fff)
-#define mnt6753_INV_Fq ((ulong)0xc90776e23fffffff)
-
-//integer_repr
-//#define mnt4753_Q ((int768){3798144713,1644726289,1209104241,1725357052,3416796615,3623268187,4101813835,3963192318,3700618320,1992740072,2456604845,2077153419,4089149708,47111175,2261968297,3206296621,1718926137,710029764,137940322,318271950,2854819438,2295312200,837751343,32769})
-// signed two's compliment
-//#define mnt4753_Q ((int768){0x01C4C62D,0x92C41110,0x229022EE,0xE2CDADB7,0xF997505B,0x8FAFED5E,0xB7E8F96C,0x97D87307,0xFDB925E8,0xA0ED8D99,0xD124D9A1,0x5AF79DB1,0x17E776F2,0x18059DB8,0x0F0DA5CB,0x537E3868,0x5ACCE976,0x7254A463,0x8810719A,0xC425F0E3,0x9D54522C,0xDD119F5E,0x9063DE24,0x5E80010000})
-
-//#define mnt6753_Q ((int768){0x01C4C62D92C41110,0x229022EEE2CDADB7,0xF997505B8FAFED5E,0xB7E8F96C97D87307,0xFDB925E8A0ED8D99,0xD124D9A15AF79DB2,0x6C5C28C859A99B3E,0xEBCA9429212636B9,0xDFF97634993AA4D6,0xC381BC3F0057974E,0xA099170FA13A4FD9,0x0776E240000001})
-
-//#define mnt4753_Q ((int768){0x1c4c6,0x2d92c411,0x10229022,0xeee2cdad,0xb7f99750,0x5b8fafed,0x5eb7e8f9,0x6c97d873,0x07fdb925,0xe8a0ed8d,0x99d124d9,0xa15af79d,0xb117e776,0xf218059d,0xb80f0da5,0xcb537e38,0x685acce9,0x767254a4,0x63881071,0x9ac425f0,0xe39d5452,0x2cdd119f,0x5e9063de,0x245e8001})
-//#define mnt4753_Q ((int768){0x5e9063de,0x245e8001,0xe39d5452,0x2cdd119f,0x63881071,0x9ac425f0,0x685acce9,0x767254a4,0xb80f0da5,0xcb537e38,0xb117e776,0xf218059d,0x99d124d9,0xa15af79d,0x7fdb925,0xe8a0ed8d,0x5eb7e8f9,0x6c97d873,0xb7f99750,0x5b8fafed,0x10229022,0xeee2cdad,0x1c4c6,0x2d92c411})
+#define mnt6753_INV_Fq ((ulong)0x3fffffff)
 
 #define mnt4753_Q ((int768){0x245e8001,0x5e9063de,0x2cdd119f,0xe39d5452,0x9ac425f0,0x63881071,0x767254a4,0x685acce9,0xcb537e38,0xb80f0da5,0xf218059d,0xb117e776,0xa15af79d,0x99d124d9,0xe8a0ed8d,0x07fdb925,0x6c97d873,0x5eb7e8f9,0x5b8fafed,0xb7f99750,0xeee2cdad,0x10229022,0x2d92c411,0x1c4c6})
-//#define mnt4753_Q ((int768){0x00000001,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000})
+#define mnt6753_Q ((int768){0x40000001,0xd90776e2,0xfa13a4f,0x4ea09917,0x3f005797,0xd6c381bc,0x34993aa4,0xb9dff976,0x29212636,0x3eebca94,0xc859a99b,0xb26c5c28,0xa15af79d,0x99d124d9,0xe8a0ed8d,0x7fdb925,0x6c97d873,0x5eb7e8f9,0x5b8fafed,0xb7f99750,0xeee2cdad,0x10229022,0x2d92c411,0x1c4c6})
 
 //#define mnt4753_R ((int768){0x01C4C62D92C41110,0x229022EEE2CDADB7,0xF997505B8FAFED5E,0xB7E8F96C97D87307,0xFDB925E8A0ED8D99,0xD124D9A15AF79DB2,0x6C5C28C859A99B3E,0xEBCA9429212636B9,0xDFF97634993AA4D6,0xC381BC3F0057974E,0xA099170FA13A4FD9,0x0776E24000000100}) // one extra byte padded 00 
 //#define mnt6753_R ((int768){0x01C4C62D92C41110,0x229022EEE2CDADB7,0xF997505B8FAFED5E,0xB7E8F96C97D87307,0xFDB925E8A0ED8D99,0xD124D9A15AF79DB1,0x17E776F218059DB8,0x0F0DA5CB537E3868,0x5ACCE9767254A463,0x8810719AC425F0E3,0x9D54522CDD119F5E,0x9063DE245E800100})
@@ -143,14 +133,14 @@ int768 int768_reduce(ulong *limbs) {
   // this breaks amd compiler
   for(uchar i = 0; i < FIELD_LIMBS; i++) result.v[i] = limbs[i+FIELD_LIMBS];
 
-  if(int768_gte(result, mnt4753_Q))
-    result = int768_sub_(result, mnt4753_Q);
+  if(int768_gte(result, mnt6753_Q))
+    result = int768_sub_(result, mnt6753_Q);
 
   return result;
 }
 
 // Modular multiplication
-int768 int768_mul(int768 a, int768 b) {
+int768 int768_mul4(int768 a, int768 b) {
   // long multiplication
   limb res[FIELD_LIMBS * 2] = {0};
   for(uint32 i = 0; i < FIELD_LIMBS; i++) {
@@ -190,24 +180,83 @@ int768 int768_mul(int768 a, int768 b) {
   return result;
 }
 
+// Modular multiplication
+int768 int768_mul6(int768 a, int768 b) {
+  // long multiplication
+  limb res[FIELD_LIMBS * 2] = {0};
+  for(uint32 i = 0; i < FIELD_LIMBS; i++) {
+    limb carry = 0;
+    for(uint32 j = 0; j < FIELD_LIMBS; j++) {
+      limb2 product = (limb2)a.v[i] * b.v[j] + res[i + j] + carry;
+      res[i + j] = product & LIMB_MAX;
+      carry = product >> LIMB_BITS;
+      //res[i + j] = mac_with_carry(a.v[i], b.v[j], res[i + j], &carry);
+    }
+    res[i + FIELD_LIMBS] = carry;
+  }
+  // this breaks amd compiler
+  //return int768_reduce(res);
+
+  bool carry2 = 0;
+  for(uchar i = 0; i < FIELD_LIMBS; i++) {
+    limb u = mnt6753_INV_Fq * res[i];
+    limb carry = 0;
+    for(uchar j = 0; j < FIELD_LIMBS; j++) {
+      limb2 product = (limb2)u * mnt6753_Q.v[j] + res[i + j] + carry;
+      res[i + j] = product & LIMB_MAX;
+      carry = product >> LIMB_BITS;
+    }
+    limb2 sum = (limb2)res[i + FIELD_LIMBS] + carry + carry2;
+    res[i + FIELD_LIMBS] = sum & LIMB_MAX;
+    carry2 = sum >> LIMB_BITS;
+  }
+
+  // Divide by R
+  int768 result;
+  for(uchar i = 0; i < FIELD_LIMBS; i++) result.v[i] = res[i+FIELD_LIMBS];
+
+  if(int768_gte(result, mnt6753_Q))
+    result = int768_sub_(result, mnt6753_Q);
+
+  return result;
+}
+
 // Modular negation
-int768 int768_neg(int768 a) {
+int768 int768_neg4(int768 a) {
   return int768_sub_(mnt4753_Q, a);
 }
 
+int768 int768_neg6(int768 a) {
+  return int768_sub_(mnt6753_Q, a);
+}
+
 // Modular subtraction
-int768 int768_sub(int768 a, int768 b) {
+int768 int768_sub4(int768 a, int768 b) {
   int768 res = int768_sub_(a, b);
   if(!int768_gte(a, b)) res = int768_add_(res, mnt4753_Q);
   return res;
 }
 
+int768 int768_sub6(int768 a, int768 b) {
+  int768 res = int768_sub_(a, b);
+  if(!int768_gte(a, b)) res = int768_add_(res, mnt6753_Q);
+  return res;
+}
+
 // Modular addition
-int768 int768_add(int768 a, int768 b) {
-  //return int768_sub(a, int768_neg(b));
-  int768 tmp = int768_neg(b);
+int768 int768_add4(int768 a, int768 b) {
+  //return int768_sub4(a, int768_neg4(b));
+  int768 tmp = int768_neg4(b);
   int768 res = int768_sub_(a, tmp);
   if(!int768_gte(a, tmp)) res = int768_add_(res, mnt4753_Q);
+  return res;
+}
+
+int768 int768_add6(int768 a, int768 b) {
+  //return int768_sub4(a, int768_neg6(b));
+  int768 tmp = int768_neg6(b);
+  int768 res = int768_sub_(a, tmp);
+  if(!int768_gte(a, tmp)) res = int768_add_(res, mnt6753_Q);
   return res;
 }
 
@@ -216,9 +265,9 @@ int768 int768_pow(int768 base, uint32 exponent) {
   int768 res = mnt4753_ONE;
   while(exponent > 0) {
     if (exponent & 1)
-      res = int768_mul(res, base);
+      res = int768_mul4(res, base);
     exponent = exponent >> 1;
-    base = int768_mul(base, base);
+    base = int768_mul4(base, base);
   }
   return res;
 }
@@ -228,7 +277,7 @@ int768 int768_pow_cached(__global int768 *bases, uint32 exponent) {
   uint32 i = 0;
   while(exponent > 0) {
     if (exponent & 1)
-      res = int768_mul(res, bases[i]);
+      res = int768_mul4(res, bases[i]);
     exponent = exponent >> 1;
     i++;
   }
@@ -236,32 +285,25 @@ int768 int768_pow_cached(__global int768 *bases, uint32 exponent) {
 }
 
 
-
-__kernel void square(
-   __global float* input,
-   __global float* output,
-   const unsigned int count)
-{
-   int i = get_global_id(0);
-   if(i < count)
-       output[i] = input[i] * input[i];
-}
-
-__kernel void mul_field(
+__kernel void mul_mnt(
     __global int768* input_x0,
     __global int768* input_x1,
-    __global int768* output,
+    __global int768* output_x,
+    __global int768* input_y0,
+    __global int768* input_y1,
+    __global int768* output_y,
     const unsigned int count)
 {
     int i = get_global_id(0);
     if(i == 1023) {
       print(input_x0[i]);
-      print(mnt4753_Q);
+      print(mnt6753_Q);
     }
     // printf("%u",i);
-    output[i] = int768_mul(input_x0[i], input_x1[i]);
-    //output[i] = int768_add(input_x0[i], input_x1[i]);
-    //output[i] = int768_sub(input_x0[i], input_x1[i]);
-    //output[i] = int768_neg(input_x1[i]);
-    //output[i] = mnt4753_Q;
+    output_x[i] = int768_mul4(input_x0[i], input_x1[i]);
+    output_y[i] = int768_mul6(input_y0[i], input_y1[i]);
+    //output[i] = int768_add6(input_x0[i], input_x1[i]);
+    //output[i] = int768_sub6(input_x0[i], input_x1[i]);
+    //output[i] = int768_neg6(input_x1[i]);
+    //output[i] = mnt6753_Q;
 }
