@@ -470,10 +470,14 @@ MNT_G1 G1_add4(MNT_G1 a, MNT_G1 b) {
   int768 vvvR = int768_add4(vvv, R);
   vvvR = int768_add4(vvvR, R);
   int768 A = int768_sub4(int768_mul4(uu, Z1_Z2), vvvR);
-
-  res.X_ = A;
-  res.Y_ = mnt4753_ONE;
-  res.Z_ = mnt4753_ONE;
+  int768 X3 = int768_mul4(v, A);
+  int768 vvvY1Z2 = int768_mul4(vvv, Y1_Z2);
+  int768 Y3 = int768_sub4(int768_mul4(u, int768_sub4(R, A)), vvvY1Z2); 
+  int768 Z3 = int768_mul4(vvv, Z1_Z2);
+  
+  res.X_ = X3;
+  res.Y_ = Y3;
+  res.Z_ = Z3;
   return res;
 }
 

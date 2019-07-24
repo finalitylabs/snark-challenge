@@ -585,7 +585,7 @@ int main(int argc, char *argv[])
       // Validate our results
       //
       printf("Kernel Result \n");
-      results[0].X().print();
+      results[0].print();
 
       // results[0].X().one().mont_repr.print_hex();
       // for(int i=0; i<12; i++) {
@@ -624,7 +624,7 @@ int main(int argc, char *argv[])
       _h4_1 = _h4_1 + g4_1[2];
       _h4_1 = _h4_1 + g4_1[3];
       _h4_1 = _h4_1 + g4_1[4];
-      _h4_1.X().print();
+      _h4_1.print();
       //  g4_1[1].X().print();
       correct = 0;
 
