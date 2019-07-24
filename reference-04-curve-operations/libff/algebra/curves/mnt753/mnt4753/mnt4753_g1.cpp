@@ -197,15 +197,15 @@ mnt4753_G1 mnt4753_G1::operator+(const mnt4753_G1 &other) const
     const mnt4753_Fq uu   = u.squared();                  // uu   = u^2
     const mnt4753_Fq v    = X2Z1 - X1Z2; // v    = X2*Z1-X1Z2
     const mnt4753_Fq vv   = v.squared();                  // vv   = v^2
-    // const mnt4753_Fq vvv  = v * vv;                       // vvv  = v*vv
-    // const mnt4753_Fq R    = vv * X1Z2;                    // R    = vv*X1Z2
-    // const mnt4753_Fq A    = uu * Z1Z2 - (vvv + R + R);    // A    = uu*Z1Z2 - vvv - 2*R
+    const mnt4753_Fq vvv  = v * vv;                       // vvv  = v*vv
+    const mnt4753_Fq R    = vv * X1Z2;                    // R    = vv*X1Z2
+    const mnt4753_Fq A    = uu * Z1Z2 - (vvv + R + R);    // A    = uu*Z1Z2 - vvv - 2*R
     // const mnt4753_Fq X3   = v * A;                        // X3   = v*A
     // const mnt4753_Fq Y3   = u * (R-A) - vvv * Y1Z2;       // Y3   = u*(R-A) - vvv*Y1Z2
     // const mnt4753_Fq Z3   = vvv * Z1Z2;                   // Z3   = vvv*Z1Z2
 
     //return mnt4753_G1(X3, Y3, Z3);
-    return mnt4753_G1(u, mnt4753_Fq::one(), mnt4753_Fq::one());
+    return mnt4753_G1(A, mnt4753_Fq::one(), mnt4753_Fq::one());
 }
 
 mnt4753_G1 mnt4753_G1::operator-() const

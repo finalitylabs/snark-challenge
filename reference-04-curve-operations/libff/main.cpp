@@ -548,8 +548,8 @@ int main(int argc, char *argv[])
       // Execute the kernel over the entire range of our 1d input data set
       // using the maximum number of work group items for this device
       //
-      //global = count;
-      global = 1;
+      global = count;
+      //global = 1;
       printf("queueing kernel\n");
       err = clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local, 0, NULL, &event);
       if (err)

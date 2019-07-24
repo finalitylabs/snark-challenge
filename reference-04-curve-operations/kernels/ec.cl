@@ -462,19 +462,16 @@ MNT_G1 G1_add4(MNT_G1 a, MNT_G1 b) {
   // add case
   int768 Z1_Z2 = int768_mul4(a.Z_, b.Z_);
   int768 u = int768_sub4(Y2_Z1, Y1_Z2);
-  u = int768_sub4(u, mnt4753_ONE); // TODO fix this hack, correcting for off by one error
-  
   int768 uu = int768_mul4(u, u);
-  uu = int768_add4(uu, mnt4753_ONE); // hack again
-  uu = int768_sub4(uu, mnt4753_ONE); // hack again
-
   int768 v = int768_sub4(X2_Z1, X1_Z2);
-  v = int768_add4(v, mnt4753_ONE); // hack again
-  v = int768_add4(v, mnt4753_ONE); // hack again
-
   int768 vv = int768_mul4(v,v);
+  int768 vvv = int768_mul4(v,vv);
+  int768 R = int768_mul4(vv, X1_Z2);
+  int768 vvvR = int768_add4(vvv, R);
+  vvvR = int768_add4(vvvR, R);
+  int768 A = int768_sub4(int768_mul4(uu, Z1_Z2), vvvR);
 
-  res.X_ = u;
+  res.X_ = A;
   res.Y_ = mnt4753_ONE;
   res.Z_ = mnt4753_ONE;
   return res;
