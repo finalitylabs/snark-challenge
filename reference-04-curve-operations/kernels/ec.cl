@@ -424,6 +424,7 @@ typedef struct {
 
 // affine coord zero
 #define G1_ZERO ((MNT_G1){mnt4753_ZERO, mnt4753_ONE, mnt4753_ZERO})
+#define G1_COEFF_A ((int768){{0xb3b8de84,0x3151d957,0xb4068d0d,0x239a638c,0x9a28ae5d,0x2f87c941,0x8f116c03,0xf2b13033,0x42112ede,0xda4d3928,0x9e063ad1,0x3c1e9b15,0x26670ab2,0x6418776e,0xa5e014c4,0xb3168605,0xfb194c42,0x80e99397,0x70cbd118,0x1f48fdb6,0x3ff3432a,0x2a8abf66,0x3d91c485,0xf68f}})
 
 bool is_zero(MNT_G1 a) {
   if(!int768_eq(a.X_, mnt4753_ZERO)) return false;
@@ -455,7 +456,24 @@ MNT_G1 G1_add4(MNT_G1 a, MNT_G1 b) {
   // double case 
   if(int768_eq(X1_Z2, X2_Z1) && int768_eq(Y1_Z2, Y2_Z1)) {
     int768 XX = int768_mul4(a.X_, a.X_); // todo special case squaring
-    res.X_ = XX;
+    int768 ZZ = int768_mul4(a.Z_, a.Z_);
+    int768 TXX = int768_add4(XX, XX);
+    TXX = int768_add4(TXX, XX);
+    int768 w = int768_add4(int768_mul4(G1_COEFF_A, ZZ), TXX);
+    int768 Y1_Z1 = int768_mul4(a.Y_, a.Z_);
+    int768 s = int768_add4(Y1_Z1, Y1_Z1);
+    int768 ss = int768_mul4(s, s);
+    int768 sss = int768_mul4(s, ss);
+    int768 R = int768_mul4(a.Y_, s);
+    int768 RR = int768_mul4(R, R);
+    int768 XRR = int768_add4(a.X_, RR);
+    int768 B = int768_sub4(XRR, int768_sub4(XX, RR));
+    int768 h = int768_sub4(int768_mul4(w, w), int768_add4(B, B));
+    int768 X3 = int768_mul4(h, s);
+    int768 Y3 = int768_mul4(w, int768_sub4(int768_sub4(B, h), int768_add4(R,R)));
+    res.X_ = X3;
+    res.Y_ = Y3;
+    res.Z_ = sss;
     return res;
   }
 
@@ -474,7 +492,7 @@ MNT_G1 G1_add4(MNT_G1 a, MNT_G1 b) {
   int768 vvvY1Z2 = int768_mul4(vvv, Y1_Z2);
   int768 Y3 = int768_sub4(int768_mul4(u, int768_sub4(R, A)), vvvY1Z2); 
   int768 Z3 = int768_mul4(vvv, Z1_Z2);
-  
+
   res.X_ = X3;
   res.Y_ = Y3;
   res.Z_ = Z3;

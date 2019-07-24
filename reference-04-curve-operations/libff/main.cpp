@@ -467,7 +467,7 @@ int main(int argc, char *argv[])
       //
       printf("building program\n");
       char options[] = "-cl-opt-disable";
-      err = clBuildProgram(program, num_devices, devices, options, NULL, NULL);
+      err = clBuildProgram(program, num_devices, devices, NULL, NULL, NULL);
       if (err != CL_SUCCESS)
       {
           size_t len;
@@ -587,14 +587,14 @@ int main(int argc, char *argv[])
       printf("Kernel Result \n");
       results[0].print();
 
-      // results[0].X().one().mont_repr.print_hex();
+      // results[0].coeff_a.mont_repr.print_hex();
       // for(int i=0; i<12; i++) {
       //   //std::cout << "Length of array = " << (sizeof(results[1013].non_residue.mont_repr.data)/sizeof(*results[1013].non_residue.mont_repr.data)) << std::endl;
       //   cl_uint x;
       //   cl_uint y;
-      //   x = (cl_uint)((results[0].X().one().mont_repr.data[i] & 0xFFFFFFFF00000000LL) >> 32);
-      //   y = (cl_uint)(results[0].X().one().mont_repr.data[i] & 0xFFFFFFFFLL);
-      //   gmp_printf("%Mx\n", results[0].X().one().mont_repr.data[i]);
+      //   x = (cl_uint)((results[0].coeff_a.mont_repr.data[i] & 0xFFFFFFFF00000000LL) >> 32);
+      //   y = (cl_uint)(results[0].coeff_a.mont_repr.data[i] & 0xFFFFFFFFLL);
+      //   gmp_printf("%Mx\n", results[0].coeff_a.mont_repr.data[i]);
       //   printf("%x\n", x);
       //   printf("%x\n", y);
       // }
