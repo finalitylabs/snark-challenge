@@ -499,8 +499,76 @@ MNT_G1 G1_add4(MNT_G1 a, MNT_G1 b) {
   return res;
 }
 
+MNT_G1 G1_double4(MNT_G1 a) {
+  if(int768_eq(a.Z_, mnt4753_ZERO)) return a;
+
+  MNT_G1 res = G1_ZERO;
+
+  int768 XX = int768_mul4(a.X_, a.X_); // todo special case squaring
+  int768 ZZ = int768_mul4(a.Z_, a.Z_);
+  int768 TXX = int768_add4(XX, XX);
+  int768 w = int768_mul4(G1_COEFF_A, int768_add4(ZZ, int768_add4(TXX, XX)));
+  //int768 w = int768_add4(int768_mul4(G1_COEFF_A, ZZ), TXX);
+  //int768 w = int768_mul4(G1_COEFF_A, int768_add4(ZZ, TXX);
+  int768 Y1_Z1 = int768_mul4(a.Y_, a.Z_);
+  int768 s = int768_add4(Y1_Z1, Y1_Z1);
+  int768 ss = int768_mul4(s, s);
+  int768 sss = int768_mul4(s, ss);
+  int768 R = int768_mul4(a.Y_, s);
+  int768 RR = int768_mul4(R, R);
+  int768 XR = int768_add4(a.X_, RR);
+  int768 XRXR = int768_mul4(XR, XR);
+  int768 B = int768_sub4(XRXR, int768_sub4(XX, RR));
+  int768 h = int768_sub4(int768_mul4(w, w), int768_add4(B, B));
+  int768 X3 = int768_mul4(h, s);
+  int768 b_h = int768_sub4(B, h);
+  int768 R_R = int768_add4(RR, RR);
+  int768 Y3 = int768_mul4(w, int768_sub4(b_h, R_R));
+  res.X_ = X3;
+  res.Y_ = Y3;
+  res.Z_ = sss;
+
+  return res;
+}
+
+
 MNT_G1 G1_mixed_add4(MNT_G1 a, MNT_G1 b) {
+  if(int768_eq(a.Z_, mnt4753_ZERO)) {
+    a.X_ = b.X_;
+    a.Y_ = b.Y_;
+    a.Z_ = mnt4753_ONE;
+    return a;
+  }
+
+  MNT_G1 res = G1_ZERO;
+  int768 X1_Z2 = a.X_;
+  int768 X2_Z1 = int768_mul4(a.Z_, b.X_);
+
+  int768 Y1_Z2 = a.Y_;
+  int768 Y2_Z1 = int768_mul4(a.Z_, b.Y_);
+
+  if(int768_eq(X1_Z2, X2_Z1) && int768_eq(Y1_Z2, Y2_Z1)) {
+    return G1_double4(a);
+  }
+
+  int768 u = int768_sub4(Y2_Z1, a.Y_);
+  int768 uu = int768_mul4(u, u);
+  int768 v = int768_sub4(X2_Z1, a.X_);
+  int768 vv = int768_mul4(v,v);
+  int768 vvv = int768_mul4(v,vv);
+  int768 R = int768_mul4(vv, a.X_);
+  int768 vvvR = int768_sub4(vvv, R);
+  vvvR = int768_sub4(vvvR, R);
+  int768 A = int768_sub4(int768_mul4(uu, a.Z_), vvvR);
+  int768 X3 = int768_mul4(v, A);
+  int768 vvvY1Z2 = int768_mul4(vvv, a.Y_);
+  int768 Y3 = int768_sub4(int768_mul4(u, int768_sub4(R, A)), vvvY1Z2); 
+  int768 Z3 = int768_mul4(vvv, a.Z_);
   
+  res.X_ = X3;
+  res.Y_ = Y3;
+  res.Z_ = Z3;
+  return res;
 }
 
 MNT_G1 G1_add6(MNT_G1 a, MNT_G1 b) {
@@ -522,12 +590,15 @@ __kernel void add_G1(
   //output_y[i] = int768_fq3_mul(input_y0[i], input_y1[i]);
   //output_y[i] = int768_fq3_add(input_y0[i], input_y1[i]);
   //output_h1[0].X_ = input_g1[1].X_;
-  output_h1[0] = G1_add4(input_h1[0], input_g1[0]);
+
+  output_h1[0] = G1_mixed_add4(input_h1[0], input_g1[0]);
+
   //for(int j=0; j < count; j++) {
   //  output_h1[0] = G1_add4(output_h1[0], input_g1[j]);
   //}
-  output_h1[0] = G1_add4(output_h1[0], input_g1[1]);
-  output_h1[0] = G1_add4(output_h1[0], input_g1[2]);
-  output_h1[0] = G1_add4(output_h1[0], input_g1[3]);
-  output_h1[0] = G1_add4(output_h1[0], input_g1[4]);
+  
+  output_h1[0] = G1_mixed_add4(output_h1[0], input_g1[1]);
+  output_h1[0] = G1_mixed_add4(output_h1[0], input_g1[2]);
+  output_h1[0] = G1_mixed_add4(output_h1[0], input_g1[3]);
+  output_h1[0] = G1_mixed_add4(output_h1[0], input_g1[4]);
 }

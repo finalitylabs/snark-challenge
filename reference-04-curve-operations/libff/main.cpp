@@ -382,7 +382,7 @@ int main(int argc, char *argv[])
       cl_mem input_x;                       // device memory used for the input array
       cl_mem input_y;                       // device memory used for the input array
       cl_mem output;                       // device memory used for the input array
-  // Fill our data set with field inputs from param gen
+      // Fill our data set with field inputs from param gen
       //
       unsigned int count = n;
       mp_size_t num = 1;
@@ -467,7 +467,7 @@ int main(int argc, char *argv[])
       //
       printf("building program\n");
       char options[] = "-cl-opt-disable";
-      err = clBuildProgram(program, num_devices, devices, NULL, NULL, NULL);
+      err = clBuildProgram(program, num_devices, devices, options, NULL, NULL);
       if (err != CL_SUCCESS)
       {
           size_t len;
@@ -618,12 +618,12 @@ int main(int argc, char *argv[])
 
       //for (size_t i = 0; i < n; ++i) { _h4_1 = _h4_1 + g4_1[i]; }
       //_h4_1.X().print();
-      _h4_1 = _h4_1 + g4_1[0];
+      _h4_1 = _h4_1.mixed_add(g4_1[0]);
       //_h4_1.X().print();
-      _h4_1 = _h4_1 + g4_1[1];
-      _h4_1 = _h4_1 + g4_1[2];
-      _h4_1 = _h4_1 + g4_1[3];
-      _h4_1 = _h4_1 + g4_1[4];
+      _h4_1 = _h4_1.mixed_add(g4_1[1]);
+      _h4_1 = _h4_1.mixed_add(g4_1[2]);
+      _h4_1 = _h4_1.mixed_add(g4_1[3]);
+      _h4_1 = _h4_1.mixed_add(g4_1[4]);
       _h4_1.print();
       //  g4_1[1].X().print();
       correct = 0;
