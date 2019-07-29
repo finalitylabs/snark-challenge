@@ -173,22 +173,22 @@ mnt4753_G1 mnt4753_G1::operator+(const mnt4753_G1 &other) const
     {
         // perform dbl case
         const mnt4753_Fq XX   = (this->X_).squared();                   // XX  = X1^2
-        // const mnt4753_Fq ZZ   = (this->Z_).squared();                   // ZZ  = Z1^2
-        // const mnt4753_Fq w    = mnt4753_G1::coeff_a * ZZ + (XX + XX + XX); // w   = a*ZZ + 3*XX
-        // const mnt4753_Fq Y1Z1 = (this->Y_) * (this->Z_);
-        // const mnt4753_Fq s    = Y1Z1 + Y1Z1;                            // s   = 2*Y1*Z1
-        // const mnt4753_Fq ss   = s.squared();                            // ss  = s^2
-        // const mnt4753_Fq sss  = s * ss;                                 // sss = s*ss
-        // const mnt4753_Fq R    = (this->Y_) * s;                         // R   = Y1*s
-        // const mnt4753_Fq RR   = R.squared();                            // RR  = R^2
-        // const mnt4753_Fq B    = ((this->X_)+R).squared()-XX-RR;         // B   = (X1+R)^2 - XX - RR
-        // const mnt4753_Fq h    = w.squared() - (B+B);                    // h   = w^2 - 2*B
-        // const mnt4753_Fq X3   = h * s;                                  // X3  = h*s
-        // const mnt4753_Fq Y3   = w * (B-h)-(RR+RR);                      // Y3  = w*(B-h) - 2*RR
-        // const mnt4753_Fq Z3   = sss;                                    // Z3  = sss
+        const mnt4753_Fq ZZ   = (this->Z_).squared();                   // ZZ  = Z1^2
+        const mnt4753_Fq w    = mnt4753_G1::coeff_a * ZZ + (XX + XX + XX); // w   = a*ZZ + 3*XX
+        const mnt4753_Fq Y1Z1 = (this->Y_) * (this->Z_);
+        const mnt4753_Fq s    = Y1Z1 + Y1Z1;                            // s   = 2*Y1*Z1
+        const mnt4753_Fq ss   = s.squared();                            // ss  = s^2
+        const mnt4753_Fq sss  = s * ss;                                 // sss = s*ss
+        const mnt4753_Fq R    = (this->Y_) * s;                         // R   = Y1*s
+        const mnt4753_Fq RR   = R.squared();                            // RR  = R^2
+        const mnt4753_Fq B    = ((this->X_)+R).squared()-XX-RR;         // B   = (X1+R)^2 - XX - RR
+        const mnt4753_Fq h    = w.squared() - (B+B);                    // h   = w^2 - 2*B
+        const mnt4753_Fq X3   = h * s;                                  // X3  = h*s
+        const mnt4753_Fq Y3   = w * (B-h)-(RR+RR);                      // Y3  = w*(B-h) - 2*RR
+        const mnt4753_Fq Z3   = sss;                                    // Z3  = sss
 
-        //return mnt4753_G1(X3, Y3, Z3);
-        return mnt4753_G1(XX, mnt4753_Fq::one(), mnt4753_Fq::one());
+        return mnt4753_G1(X3, Y3, Z3);
+        //return mnt4753_G1(XX, mnt4753_Fq::one(), mnt4753_Fq::one());
     }
 
     // if we have arrived here we are in the add case
@@ -330,6 +330,8 @@ mnt4753_G1 mnt4753_G1::dbl() const
 
         const mnt4753_Fq XX   = (this->X_).squared();                   // XX  = X1^2
         const mnt4753_Fq ZZ   = (this->Z_).squared();                   // ZZ  = Z1^2
+        const mnt4753_Fq aZZ  = mnt4753_G1::coeff_a * ZZ;
+        const mnt4753_Fq w2   = aZZ + (XX + XX + XX);
         const mnt4753_Fq w    = mnt4753_G1::coeff_a * ZZ + (XX + XX + XX); // w   = a*ZZ + 3*XX
         const mnt4753_Fq Y1Z1 = (this->Y_) * (this->Z_);
         const mnt4753_Fq s    = Y1Z1 + Y1Z1;                            // s   = 2*Y1*Z1

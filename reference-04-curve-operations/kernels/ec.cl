@@ -459,18 +459,26 @@ MNT_G1 G1_add4(MNT_G1 a, MNT_G1 b) {
     int768 ZZ = int768_mul4(a.Z_, a.Z_);
     int768 TXX = int768_add4(XX, XX);
     TXX = int768_add4(TXX, XX);
-    int768 w = int768_add4(int768_mul4(G1_COEFF_A, ZZ), TXX);
+    int768 wz = int768_mul4(G1_COEFF_A, ZZ);
+    int768 w = int768_add4(wz, TXX);
     int768 Y1_Z1 = int768_mul4(a.Y_, a.Z_);
     int768 s = int768_add4(Y1_Z1, Y1_Z1);
     int768 ss = int768_mul4(s, s);
     int768 sss = int768_mul4(s, ss);
     int768 R = int768_mul4(a.Y_, s);
     int768 RR = int768_mul4(R, R);
-    int768 XRR = int768_add4(a.X_, RR);
-    int768 B = int768_sub4(XRR, int768_sub4(XX, RR));
-    int768 h = int768_sub4(int768_mul4(w, w), int768_add4(B, B));
+    int768 XR = int768_add4(a.X_, R);
+    int768 XRXR = int768_mul4(XR, XR);
+    XRXR = int768_sub4(XRXR, XX);
+    int768 B = int768_sub4(XRXR, RR);
+    int768 ww = int768_mul4(w, w);
+    int768 BB = int768_add4(B, B);
+    int768 h = int768_sub4(ww, BB);
     int768 X3 = int768_mul4(h, s);
-    int768 Y3 = int768_mul4(w, int768_sub4(int768_sub4(B, h), int768_add4(R,R)));
+    int768 b_h = int768_sub4(B, h);
+    int768 wbh = int768_mul4(w, b_h);
+    int768 RRRR = int768_add4(RR, RR);
+    int768 Y3 = int768_sub4(wbh, RRRR);
     res.X_ = X3;
     res.Y_ = Y3;
     res.Z_ = sss;
@@ -507,27 +515,30 @@ MNT_G1 G1_double4(MNT_G1 a) {
   int768 XX = int768_mul4(a.X_, a.X_); // todo special case squaring
   int768 ZZ = int768_mul4(a.Z_, a.Z_);
   int768 TXX = int768_add4(XX, XX);
-  int768 w = int768_mul4(G1_COEFF_A, int768_add4(ZZ, int768_add4(TXX, XX)));
-  //int768 w = int768_add4(int768_mul4(G1_COEFF_A, ZZ), TXX);
-  //int768 w = int768_mul4(G1_COEFF_A, int768_add4(ZZ, TXX);
+  TXX = int768_add4(TXX, XX);
+  int768 wz = int768_mul4(G1_COEFF_A, ZZ);
+  int768 w = int768_add4(wz, TXX);
   int768 Y1_Z1 = int768_mul4(a.Y_, a.Z_);
   int768 s = int768_add4(Y1_Z1, Y1_Z1);
   int768 ss = int768_mul4(s, s);
   int768 sss = int768_mul4(s, ss);
   int768 R = int768_mul4(a.Y_, s);
   int768 RR = int768_mul4(R, R);
-  int768 XR = int768_add4(a.X_, RR);
+  int768 XR = int768_add4(a.X_, R);
   int768 XRXR = int768_mul4(XR, XR);
-  int768 B = int768_sub4(XRXR, int768_sub4(XX, RR));
-  int768 h = int768_sub4(int768_mul4(w, w), int768_add4(B, B));
+  XRXR = int768_sub4(XRXR, XX);
+  int768 B = int768_sub4(XRXR, RR);
+  int768 ww = int768_mul4(w, w);
+  int768 BB = int768_add4(B, B);
+  int768 h = int768_sub4(ww, BB);
   int768 X3 = int768_mul4(h, s);
   int768 b_h = int768_sub4(B, h);
-  int768 R_R = int768_add4(RR, RR);
-  int768 Y3 = int768_mul4(w, int768_sub4(b_h, R_R));
+  int768 wbh = int768_mul4(w, b_h);
+  int768 RRRR = int768_add4(RR, RR);
+  int768 Y3 = int768_sub4(wbh, RRRR);
   res.X_ = X3;
   res.Y_ = Y3;
   res.Z_ = sss;
-
   return res;
 }
 
@@ -591,14 +602,14 @@ __kernel void add_G1(
   //output_y[i] = int768_fq3_add(input_y0[i], input_y1[i]);
   //output_h1[0].X_ = input_g1[1].X_;
 
-  output_h1[0] = G1_mixed_add4(input_h1[0], input_g1[0]);
+  output_h1[0] = G1_add4(input_h1[0], input_g1[0]);
 
   //for(int j=0; j < count; j++) {
   //  output_h1[0] = G1_add4(output_h1[0], input_g1[j]);
   //}
   
-  output_h1[0] = G1_mixed_add4(output_h1[0], input_g1[1]);
-  output_h1[0] = G1_mixed_add4(output_h1[0], input_g1[2]);
-  output_h1[0] = G1_mixed_add4(output_h1[0], input_g1[3]);
-  output_h1[0] = G1_mixed_add4(output_h1[0], input_g1[4]);
+  //output_h1[0] = G1_add4(output_h1[0], input_g1[1]);
+  output_h1[0] = G1_add4(input_g1[6], input_g1[6]);
+  //output_h1[0] = G1_add4(output_h1[0], input_g1[3]);
+  output_h1[0] = G1_add4(input_g1[4], input_g1[4]);
 }
